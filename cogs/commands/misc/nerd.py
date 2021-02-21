@@ -3,6 +3,7 @@ import traceback
 import datetime
 import asyncio
 import discord
+import humanize
 from discord.ext import commands, menus
 
 
@@ -115,7 +116,7 @@ class Nerd(commands.Cog):
         if action == "take":
             val = -1 * val
         
-        receiver = self.bot.settings.user(member.id)
+        receiver = await self.bot.settings.user(member.id)
         receive_action = {
             "amount": val,
             "from": ctx.author.id,
@@ -126,7 +127,7 @@ class Nerd(commands.Cog):
         receiver.karma_received_history.append(receive_action)
         receiver.save()
         
-        giver = self.bot.settings.user(ctx.author.id)
+        giver = await self.bot.settings.user(ctx.author.id)
         give_action = {
             "amount": val,
             "to": member.id,
@@ -153,21 +154,73 @@ class Nerd(commands.Cog):
     async def history(self, ctx, member: discord.Member = None):
         """History of all karma, or a specific user's karma\nExample usage: `$history` or `$history @member`"""
 
-        # class Source(menus.GroupByPageSource):
-        #     async def format_page(self, menu, entry):
-        #         embed = discord.Embed(
-        #             title=f'History: Page {menu.current_page +1}/{self.get_max_pages()}', color=discord.Color(value=0xfcba03))
-        #         for v in entry.items:
-        #             member_text = member.display_name)
-        #             invoker_text = ""
-        #             invoker = ctx.guild.get_member(v.)
-        #             if not invoker:
-        #                 invoker_text = fetch_nick(v[3])
+        if not ctx.guild.id == self.bot.settings.guild_id:
+            return
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
 
-        #             embed.add_field(
-        #                 name=f'{v[0]}. {datetime.strptime(v[5], "%Y-%m-%dT%H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S")}', value=f'{invoker.mention if invoker else invoker_text} {f"gave {v[4]} karma to" if v[4] > 0 else f"took {-1 * v[4]} karma from "} {member.mention if member else member_text}\n**Reason**: {v[6]}', inline=False)
-        #         return embed
+        class Source(menus.GroupByPageSource):
+            async def format_page(self, menu, entry):
+                embed = discord.Embed(
+                    title=f'History: Page {menu.current_page +1}/{self.get_max_pages()}', color=discord.Color(value=0xfcba03))
+                for v in entry.items:
+                    invoker_text = f"<@{v['from']}>"
+                    
+                    if v["amount"] < 0:
+                        embed.add_field(
+                            name=f'{humanize.naturaltime(v["date"])}', value=f'{invoker_text} took {v["amount"]} karma from {member.mention}\n**Reason**: {v["reason"]}', inline=False)
+                    else:
+                        embed.add_field(
+                            name=f'{humanize.naturaltime(v["date"])}', value=f'{invoker_text} gave {v["amount"]} karma to {member.mention}\n**Reason**: {v["reason"]}', inline=False)
+                return embed
+        
+        data = sorted((await self.bot.settings.user(member.id)).karma_received_history, key=lambda d: d['date'], reverse=True)
+        
+        if (len(data) == 0):
+            raise commands.BadArgument("This user had no history.")
+       
+        pages = NewMenuPages(source=Source(
+            data, key=lambda t: 1, per_page=10), clear_reactions_after=True)
+        await pages.start(ctx)
+        
+    @commands.command(name='modhistory')
+    async def modhistory(self, ctx, member: discord.Member = None):
+        """History of all karma, or a specific user's karma\nExample usage: `$history` or `$history @member`"""
 
+        if not ctx.guild.id == self.bot.settings.guild_id:
+            return
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+
+        class Source(menus.GroupByPageSource):
+            async def format_page(self, menu, entry):
+                embed = discord.Embed(
+                    title=f'History: Page {menu.current_page +1}/{self.get_max_pages()}', color=discord.Color(value=0xfcba03))
+                for v in entry.items:
+                    target = f"<@{v['to']}>"
+                    
+                    if v["amount"] < 0:
+                        embed.add_field(
+                            name=f'{humanize.naturaltime(v["date"])}', value=f'{member.mention} took {v["amount"]} karma from {target}\n**Reason**: {v["reason"]}', inline=False)
+                    else:
+                        embed.add_field(
+                            name=f'{humanize.naturaltime(v["date"])}', value=f'{member.mention} gave {v["amount"]} karma to {target}\n**Reason**: {v["reason"]}', inline=False)
+                return embed
+        
+        data = sorted((await self.bot.settings.user(member.id)).karma_given_history, key=lambda d: d['date'], reverse=True)
+        
+        if (len(data) == 0):
+            raise commands.BadArgument("This user had no history.")
+       
+        pages = NewMenuPages(source=Source(
+            data, key=lambda t: 1, per_page=10), clear_reactions_after=True)
+        await pages.start(ctx)
+
+
+    @history.error
+    @modhistory.error
     @postembed.error
     async def info_error(self, ctx, error):
         await ctx.message.delete(delay=5)
