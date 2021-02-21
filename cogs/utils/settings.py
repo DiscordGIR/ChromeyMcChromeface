@@ -128,13 +128,22 @@ class Settings(commands.Cog):
     async def add_tag(self, tag: Tag) -> None:
         Guild.objects(_id=self.guild_id).update_one(push__tags=tag)
 
-    async def remove_tag(self, tag: str):
-        return Guild.objects(_id=self.guild_id).update_one(pull__tags__name=Tag(name=tag).name)
+    async def remove_tag(self, _id: str):
+        return Guild.objects(_id=self.guild_id).update_one(pull__tags__name=Tag(_id=_id)._id)
 
-    async def get_tag(self, name: str):
+    async def get_tag(self, _id: int):
         g = Guild.objects(_id=self.guild_id).first()
         for t in g.tags:
-            if t.name == name:
+            if t._id == _id:
+                t.use_count += 1
+                g.save()
+                return t
+        return None
+    
+    async def get_tag_by_name(self, name: str, args: bool):
+        g = Guild.objects(_id=self.guild_id).first()
+        for t in g.tags:
+            if t.name  == name and t.args == args:
                 t.use_count += 1
                 g.save()
                 return t

@@ -1,5 +1,7 @@
 import aiohttp
 import traceback
+import random
+import re
 from io import BytesIO
 
 import discord
@@ -38,7 +40,7 @@ class Tags(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="addtag", aliases=['addt'])
-    async def addtag(self, ctx, name: str, *, content: str) -> None:
+    async def addtag(self, ctx, name: str, args: bool, *, content: str) -> None:
         """Add a tag. Optionally attach an iamge. (Nerds and up)
 
         Example usage:
@@ -59,13 +61,16 @@ class Tags(commands.Cog):
 
         if not name.isalnum():
             raise commands.BadArgument("Tag name must be alphanumeric.")
-
-        if (await self.bot.settings.get_tag(name.lower())) is not None:
+        
+        prev_tag = await self.bot.settings.get_tag_by_name(name.lower(), args)
+        if prev_tag is not None:
             raise commands.BadArgument("Tag with that name already exists.")
 
         tag = Tag()
+        tag._id = random.randint(0, 10000000)
         tag.name = name.lower()
         tag.content = content
+        tag.args = args
         tag.added_by_id = ctx.author.id
         tag.added_by_tag = str(ctx.author)
         
@@ -92,16 +97,13 @@ class Tags(commands.Cog):
                             return None
                         return await resp2.read(), resp2.headers['CONTENT-TYPE']
                         
-    async def tag_embed(self, tag):
-        embed = discord.Embed(title=tag.name)
-        embed.description = tag.content
-        embed.timestamp = tag.added_date
-        embed.color = discord.Color.blue()
-
-        if tag.image.read() is not None:
-            embed.set_image(url="attachment://image.gif" if tag.image.content_type == "image/gif" else "attachment://image.png")
-        embed.set_footer(text=f"Added by {tag.added_by_tag} | Used {tag.use_count} times")
-        return embed
+    async def tag_response(self, tag, args):
+        pattern = re.compile(r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*")
+        if (pattern.match(tag.content)):
+            response = tag.content + "%20".join(args.split(" "))
+        else:
+            response = tag.content + " " + args
+        return response
 
     @commands.guild_only()
     @commands.command(name="taglist", aliases=['tlist'])
@@ -126,7 +128,7 @@ class Tags(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="deltag", aliases=['dtag'])
-    async def deltag(self, ctx, name: str):
+    async def deltag(self, ctx, _id: int):
         """Delete tag (Nerds and up)
 
         Example usage:
@@ -144,18 +146,16 @@ class Tags(commands.Cog):
             raise commands.BadArgument(
                 "You need to be a Nerd or higher to use that command.")
 
-        name = name.lower()
-
-        tag = await self.bot.settings.get_tag(name)
+        tag = await self.bot.settings.get_tag(_id)
         if tag is None:
             raise commands.BadArgument("That tag does not exist.")
 
-        await self.bot.settings.remove_tag(name)
+        await self.bot.settings.remove_tag(_id)
         await ctx.message.reply("Deleted.")
 
     @commands.guild_only()
     @commands.command(name="tag", aliases=['t'])
-    async def tag(self, ctx, name: str):
+    async def tag(self, ctx, name: str, *, args = ""):
         """Use a tag with a given name.
         
         Example usage
@@ -169,7 +169,7 @@ class Tags(commands.Cog):
         """
 
         name = name.lower()
-        tag = await self.bot.settings.get_tag(name)
+        tag = await self.bot.settings.get_tag_by_name(name, args != "")
         
         if tag is None:
             raise commands.BadArgument("That tag does not exist.")
@@ -177,8 +177,8 @@ class Tags(commands.Cog):
         file = tag.image.read()
         if file is not None:
             file = discord.File(BytesIO(file), filename="image.gif" if tag.image.content_type == "image/gif" else "image.png")
-        
-        await ctx.message.reply(embed=await self.tag_embed(tag), file=file, mention_author=False)
+        response = await self.tag_response(tag, args)
+        await ctx.message.reply(response, file=file, mention_author=False)
 
     @tag.error
     @taglist.error
