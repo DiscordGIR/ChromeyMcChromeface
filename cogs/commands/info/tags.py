@@ -12,15 +12,13 @@ from discord.ext import menus
 
 class TagsSource(menus.GroupByPageSource):
     async def format_page(self, menu, entry):
-        embed = discord.Embed(
-            title=f'All tags', color=discord.Color.blurple())
+        embed = discord.Embed(title=f'Commands: Page {menu.current_page +1}/{self.get_max_pages()}')
         for tag in entry.items:
-            desc = f"Added by: {tag.added_by_tag}\nUsed {tag.use_count} times"
-            if tag.image.read() is not None:
-                desc += "\nHas image attachment"
-            embed.add_field(name=tag.name, value=desc)
-        embed.set_footer(
-            text=f"Page {menu.current_page +1} of {self.get_max_pages()}")
+            res = tag.content[:50] + "..." if len(tag.content) > 50 else tag.content
+            argo = " [args]" if tag.args else ""
+            if (argo != ""):
+                res += argo
+            embed.add_field(name=f'!t {tag.name}{argo}', value=f'**ID**: {tag._id}\n**Supports arguments**: {tag.args}\n**Creator**: {tag.added_by_tag}\n**Number of uses**: {tag.use_count}')
         return embed
 
 
