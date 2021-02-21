@@ -3,7 +3,17 @@ import traceback
 import datetime
 import asyncio
 import discord
-from discord.ext import commands
+from discord.ext import commands, menus
+
+
+class NewMenuPages(menus.MenuPages):
+    async def update(self, payload):
+        if self._can_remove_reactions:
+            if payload.event_type == 'REACTION_ADD':
+                await self.message.remove_reaction(payload.emoji, payload.member)
+            elif payload.event_type == 'REACTION_REMOVE':
+                return
+        await super().update(payload)
 
 
 class Nerd(commands.Cog):
@@ -68,6 +78,95 @@ class Nerd(commands.Cog):
         embed.set_footer(text=f"Submitted by {message.author}")
         embed.timestamp = datetime.datetime.now()
         return embed, f
+
+    @commands.command(name='karma')
+    async def karma(self, ctx, action: str, member: discord.Member, val: int, *, reason: str = "No reason."):
+        """Give or take karma from a user.\nYou may give or take up to 3 karma in a single command.\nOptionally, you can include a reason as an argument.\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`"""
+        # print(reason)
+        # if reason is not None:
+        #     pattern = re.compile(r"^[a-zA-Z0-9\s_-]*$")
+        #     if (not pattern.match(reason)):
+        #         raise commands.BadArgument(
+        #             "The reason should only be alphanumeric characters with `_` and `-`!\nExample usage:`$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`")
+
+        if not ctx.guild.id == self.bot.settings.guild_id:
+            return
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+
+        action = action.lower()
+        if action != "give" and action != "take":
+            raise commands.BadArgument(
+                "The action should be either \"give\" or \"take\"\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`")
+
+        if val < 1 or val > 3:
+            raise commands.BadArgument(
+                "You can give or take 1-3 karma in a command!\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`")
+
+        if member.bot:
+            raise commands.BadArgument(
+                "You can't give a bot karma")
+
+        if member.id == ctx.author.id and member.id != self.bot.owner_id:
+            raise commands.BadArgument(
+                "You can't give yourself karma")
+
+        if action == "take":
+            val = -1 * val
+        
+        receiver = self.bot.settings.user(member.id)
+        receive_action = {
+            "amount": val,
+            "from": ctx.author.id,
+            "date": datetime.datetime.now(),
+            "reason": reason
+        }
+        receiver.karma += val
+        receiver.karma_received_history.append(receive_action)
+        receiver.save()
+        
+        giver = self.bot.settings.user(ctx.author.id)
+        give_action = {
+            "amount": val,
+            "to": member.id,
+            "date": datetime.datetime.now(),
+            "reason": reason
+        }
+        giver.karma_given_history.append(give_action)
+        giver.save()
+        
+        embed = discord.Embed(title=f"Updated {member.name}#{member.discriminator}'s karma!",
+                      color=discord.Color(value=0x37b83b))
+        embed.description = ""
+        if val < 0:
+            embed.description += f'**Karma taken**: {-1 * val}\n'
+        else:
+            embed.description += f'**Karma given**: {val}\n'
+        embed.description += f'**Current karma**: {receiver.karma}\n'
+        embed.description += f'**Reason**: {reason}'
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url)
+        await ctx.message.reply(embed=embed)
+
+    @commands.command(name='history')
+    async def history(self, ctx, member: discord.Member = None):
+        """History of all karma, or a specific user's karma\nExample usage: `$history` or `$history @member`"""
+
+        # class Source(menus.GroupByPageSource):
+        #     async def format_page(self, menu, entry):
+        #         embed = discord.Embed(
+        #             title=f'History: Page {menu.current_page +1}/{self.get_max_pages()}', color=discord.Color(value=0xfcba03))
+        #         for v in entry.items:
+        #             member_text = member.display_name)
+        #             invoker_text = ""
+        #             invoker = ctx.guild.get_member(v.)
+        #             if not invoker:
+        #                 invoker_text = fetch_nick(v[3])
+
+        #             embed.add_field(
+        #                 name=f'{v[0]}. {datetime.strptime(v[5], "%Y-%m-%dT%H:%M:%S.%f").strftime("%Y-%m-%d %H:%M:%S")}', value=f'{invoker.mention if invoker else invoker_text} {f"gave {v[4]} karma to" if v[4] > 0 else f"took {-1 * v[4]} karma from "} {member.mention if member else member_text}\n**Reason**: {v[6]}', inline=False)
+        #         return embed
 
     @postembed.error
     async def info_error(self, ctx, error):

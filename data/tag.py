@@ -2,6 +2,7 @@ import mongoengine
 from datetime import datetime
 
 class Tag(mongoengine.EmbeddedDocument):
+    _id         = mongoengine.IntField(required=True)
     name         = mongoengine.StringField(required=True)
     content      = mongoengine.StringField(required=True)
     added_by_tag = mongoengine.StringField()
@@ -9,3 +10,4 @@ class Tag(mongoengine.EmbeddedDocument):
     added_date   = mongoengine.DateTimeField(default=datetime.now)
     use_count    = mongoengine.IntField(default=0)
     image        = mongoengine.FileField(default=None)
+    args         = mongoengine.BooleanField(default=False, required=True)
