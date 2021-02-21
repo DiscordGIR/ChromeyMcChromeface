@@ -84,7 +84,6 @@ class Filters(commands.Cog):
 
         # must be at least admin
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 
@@ -108,7 +107,6 @@ class Filters(commands.Cog):
         """
 
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 
@@ -137,7 +135,6 @@ class Filters(commands.Cog):
         """
         # must be at least admin
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 
@@ -148,10 +145,9 @@ class Filters(commands.Cog):
         
         if len(words) > 0:
             await self.bot.settings.remove_filtered_word(words[0].word)
-            await ctx.message.reply("Deleted!", delete_after=5)
+            await ctx.message.reply("Deleted!")
         else:
-            await ctx.message.reply("That word is not filtered.", delete_after=5)            
-        await ctx.message.delete(delay=5)
+            await ctx.message.reply("That word is not filtered.")            
 
     @commands.guild_only()
     @commands.command(name="whitelist")
@@ -171,15 +167,13 @@ class Filters(commands.Cog):
 
         # must be at least admin
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 
         if await self.bot.settings.add_whitelisted_guild(id):
-            await ctx.message.reply("Whitelisted.", delete_after=10)
+            await ctx.message.reply("Whitelisted.")
         else:
-            await ctx.message.reply("That server is already whitelisted.", delete_after=10)
-        await ctx.message.delete(delay=10)
+            await ctx.message.reply("That server is already whitelisted.")
 
     @commands.guild_only()
     @commands.command(name="ignorechannel")
@@ -199,15 +193,13 @@ class Filters(commands.Cog):
 
         # must be at least admin
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 
         if await self.bot.settings.add_ignored_channel(channel.id):
-            await ctx.message.reply("Ignored.", delete_after=10)
+            await ctx.message.reply("Ignored.")
         else:
-            await ctx.message.reply("That channel is already ignored.", delete_after=10)
-        await ctx.message.delete(delay=10)
+            await ctx.message.reply("That channel is already ignored.")
 
     @commands.guild_only()
     @commands.command(name="unignorechannel")
@@ -226,16 +218,13 @@ class Filters(commands.Cog):
 
         # must be at least admin
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 
         if await self.bot.settings.remove_ignored_channel(channel.id):
-            await ctx.message.reply("Unignored.", delete_after=10)
+            await ctx.message.reply("Unignored.")
         else:
-            await ctx.message.reply("That channel is not already ignored.", delete_after=10)
-        await ctx.message.delete(delay=10)
-
+            await ctx.message.reply("That channel is not already ignored.")
 
     @commands.guild_only()
     @commands.command(name="blacklist")
@@ -255,15 +244,13 @@ class Filters(commands.Cog):
 
         # must be at least admin
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 
         if await self.bot.settings.remove_whitelisted_guild(id):
-            await ctx.message.reply("Blacklisted.", delete_after=10)
+            await ctx.message.reply("Blacklisted.")
         else:
-            await ctx.message.reply("That server is already blacklisted.", delete_after=10)
-        await ctx.message.delete(delay=10)
+            await ctx.message.reply("That server is already blacklisted.")
 
     @whitelist.error
     @blacklist.error
@@ -274,6 +261,7 @@ class Filters(commands.Cog):
     @ignorechannel.error
     @unignorechannel.error
     async def info_error(self, ctx, error):
+        await ctx.message.delete(delay=5)
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)
             or isinstance(error, commands.BadUnionArgument)

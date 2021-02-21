@@ -30,7 +30,7 @@ async def report(bot, msg, user, word, invite=None):
         res = (user.id != bot.user.id
                and reaction.message == report_msg
                and str(reaction.emoji) in report_reactions
-               and bot.settings.permissions.hasAtLeast(user.guild, user, 5))
+               and bot.settings.permissions.hasAtLeast(user.guild, user, 2))
         return res
 
     while True:
@@ -50,7 +50,7 @@ async def report(bot, msg, user, word, invite=None):
                     pass
                 return
             elif str(reaction.emoji) == '🆔':
-                await channel.send(user.id, delete_after=10)
+                await channel.send(user.id)
             elif str(reaction.emoji) == '🧹':
                 await channel.purge(limit=100)
             
@@ -63,8 +63,6 @@ async def prepare_embed(bot, user, msg, word):
     rd = await bot.settings.rundown(user.id)
     rd_text = ""
     for r in rd:
-        if r._type == "WARN":
-            r.punishment += " points"
         rd_text += f"**{r._type}** - {r.punishment} - {r.reason} - {humanize.naturaltime(datetime.datetime.now() - r.date)}\n"
 
     embed = discord.Embed(title="Word filter")

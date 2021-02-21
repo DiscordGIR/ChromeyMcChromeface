@@ -18,7 +18,7 @@ class CasesSource(menus.GroupByPageSource):
         user = menu.ctx.args[2] or menu.ctx.author
         u = await menu.ctx.bot.settings.user(user.id)
         embed = discord.Embed(
-            title=f'Cases - {u.warn_points} warn points', color=discord.Color.blurple())
+            title=f'Cases', color=discord.Color.blurple())
         embed.set_author(name=user, icon_url=user.avatar_url)
         for case in entry.items:
             timestamp = case.date.strftime("%B %d, %Y, %I:%M %p")
@@ -32,7 +32,7 @@ class CasesSource(menus.GroupByPageSource):
                 else:
                     embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}',
                                     value=f'**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Warned on**: {timestamp} UTC', inline=True)
-            elif case._type == "MUTE" or case._type == "REMOVEPOINTS":
+            elif case._type == "MUTE":
                 embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}',
                                 value=f'**{pun_map[case._type]}**: {case.punishment}\n**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Time**: {timestamp} UTC', inline=True)
             elif case._type in pun_map:
@@ -91,7 +91,6 @@ class UserInfo(commands.Cog):
                     f"Couldn't find user with ID {user}")
 
         if not is_mod and user.id != ctx.author.id:
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
 
@@ -186,7 +185,6 @@ class UserInfo(commands.Cog):
 
         menus = MenuPages(source=CasesSource(
             cases, key=lambda t: 1, per_page=9), clear_reactions_after=True)
-        await ctx.message.delete()
         await menus.start(ctx)
 
     @cases.error

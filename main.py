@@ -43,7 +43,6 @@ initial_extensions = [
                     'cogs.monitors.filter',
                     'cogs.monitors.logging',
                     'cogs.monitors.reactionroles',
-                    'cogs.monitors.xp',
 ]
 
 intents = discord.Intents.default()
@@ -172,7 +171,7 @@ class Bot(commands.Bot):
         except Exception:
             embed = discord.Embed(description=message, color=discord.Color.orange())
             embed.set_footer(text=footer)
-            await channel.send(member.mention, embed=embed, delete_after=10)
+            await channel.send(member.mention, embed=embed)
 
     async def mute(self, ctx: commands.Context, user: discord.Member) -> None:
         dur = "15m"
@@ -217,12 +216,6 @@ class Bot(commands.Bot):
         await user.add_roles(mute_role)
 
         log = await logger.prepare_mute_log(ctx.me, user, case)
-
-        public_chan = ctx.guild.get_channel(self.settings.guild().channel_public)
-        if public_chan:
-            log.remove_author()
-            log.set_thumbnail(url=user.avatar_url)
-            await public_chan.send(embed=log)
 
         try:
             await user.send("You have been muted in r/Jailbreak", embed=log)

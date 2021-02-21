@@ -28,7 +28,7 @@ class ReactionRoles(commands.Cog):
 
         if not ctx.guild.id == self.bot.settings.guild_id:
             return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 6):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
         channel = ctx.guild.get_channel(self.bot.settings.guild().channel_reaction_roles)
@@ -114,7 +114,7 @@ class ReactionRoles(commands.Cog):
                 the_string += f"Reaction {str(r)} will give role <@&{reaction_mapping[message.id][str(r.emoji)]}>\n"
                 await message.add_reaction(r)
 
-        await ctx.send(the_string, delete_after=10)
+        await ctx.send(the_string)
 
     @commands.command(name="newreaction")
     @commands.guild_only()
@@ -134,7 +134,7 @@ class ReactionRoles(commands.Cog):
 
         if not ctx.guild.id == self.bot.settings.guild_id:
             return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 6):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
         channel = ctx.guild.get_channel(self.bot.settings.guild().channel_reaction_roles)
@@ -224,7 +224,7 @@ class ReactionRoles(commands.Cog):
                 the_string += f"Reaction {str(r)} will give role <@&{reaction_mapping[message.id][str(r.emoji)]}>\n"
                 await message.add_reaction(r)
 
-        await ctx.send(the_string, delete_after=10)
+        await ctx.send(the_string)
 
     @commands.command(name="movereactions")
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
@@ -246,7 +246,7 @@ class ReactionRoles(commands.Cog):
 
         if not ctx.guild.id == self.bot.settings.guild_id:
             return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 6):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
 
@@ -273,7 +273,6 @@ class ReactionRoles(commands.Cog):
         except Exception:
             pass
 
-        await ctx.message.delete()
         rero_mapping = {after: rero_mapping}
 
         await self.bot.settings.add_rero_mapping(rero_mapping)
@@ -287,7 +286,7 @@ class ReactionRoles(commands.Cog):
                 the_string += f"Reaction {str(r)} will give role <@&{rero_mapping[after][r]}>\n"
                 await after_message.add_reaction(r)
 
-        await ctx.send(the_string, delete_after=10)
+        await ctx.send(the_string)
 
     @commands.command(name="repostreactions")
     @commands.guild_only()
@@ -297,7 +296,7 @@ class ReactionRoles(commands.Cog):
 
         if not ctx.guild.id == self.bot.settings.guild_id:
             return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 6):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
 
@@ -320,8 +319,7 @@ class ReactionRoles(commands.Cog):
                 for r in rero_mapping[m]:
                     await message.add_reaction(r)
 
-        await ctx.message.delete()
-        await ctx.send("Done!", delete_after=5)
+        await ctx.send("Done!")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):

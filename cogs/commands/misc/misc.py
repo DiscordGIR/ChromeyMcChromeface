@@ -1,7 +1,4 @@
 import datetime
-import json
-import os
-import re
 import traceback
 import typing
 from io import BytesIO
@@ -54,8 +51,7 @@ class Misc(commands.Cog):
         natural_time =  humanize.naturaldelta(
                     delta, minimum_unit="seconds")
         embed = discord.Embed(title="Reminder set", color=discord.Color.random(), description=f"We'll remind you in {natural_time} ")
-        await ctx.message.delete(delay=5)
-        await ctx.message.reply(embed=embed, delete_after=10)
+        await ctx.message.reply(embed=embed)
         
     @commands.command(name="jumbo")
     @commands.guild_only()
@@ -129,7 +125,6 @@ class Misc(commands.Cog):
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
 
-        await ctx.message.delete()
         embed = discord.Embed(title=f"{member}'s avatar")
         embed.set_image(url=member.avatar_url)
         embed.color = discord.Color.random()

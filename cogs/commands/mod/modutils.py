@@ -15,7 +15,7 @@ class ModUtils(commands.Cog):
     @commands.guild_only()
     @commands.command(name="rundown", aliases=['rd'])
     async def rundown(self, ctx: commands.Context, user: discord.Member) -> None:
-        """Get information about a user (join/creation date, xp, etc.), defaults to command invoker.
+        """Get information about a user (join/creation date, etc.), defaults to command invoker.
 
         Example usage:
         --------------
@@ -68,8 +68,6 @@ class ModUtils(commands.Cog):
         embed.description = f"We transferred {oldmember.mention}'s profile to {newmember.mention}"
         embed.color = discord.Color.blurple()
         embed.add_field(name="Level", value=u.level)
-        embed.add_field(name="XP", value=u.xp)
-        embed.add_field(name="Warnpoints", value=f"{u.warn_points} points")
         embed.add_field(name="Cases", value=f"We transfered {case_count} cases")
 
         await ctx.message.reply(embed=embed)
@@ -132,8 +130,6 @@ class ModUtils(commands.Cog):
         rd = await self.bot.settings.rundown(user.id)
         rd_text = ""
         for r in rd:
-            if r._type == "WARN":
-                r.punishment += " points"
             rd_text += f"**{r._type}** - {r.punishment} - {r.reason} - {humanize.naturaltime(datetime.datetime.now() - r.date)}\n"
 
         reversed_roles = user.roles
@@ -153,8 +149,6 @@ class ModUtils(commands.Cog):
         embed.add_field(name="Join date", value=f"{joined} UTC")
         embed.add_field(name="Account creation date",
                         value=f"{created} UTC")
-        embed.add_field(name="Warn points",
-                        value=user_info.warn_points, inline=True)
 
         embed.add_field(
             name="Roles", value=roles if roles else "None", inline=False)

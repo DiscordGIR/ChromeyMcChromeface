@@ -9,7 +9,7 @@ class Utilities(commands.Cog):
         self.bot = bot
         self.left_col_length = 17
         self.right_col_length = 80
-        self.mod_only = ["ModActions", "ModUtils", "Filters", "BoosterEmojis", "ReactionRoles", "Giveaway", "Admin"]
+        self.mod_only = ["ModActions", "ModUtils", "Filters", "ReactionRoles", "Giveaway", "Admin"]
         self.nerd_only = ["nerd"]
 
     @commands.command(name="help", hidden=True)
@@ -17,8 +17,6 @@ class Utilities(commands.Cog):
     @commands.has_permissions(add_reactions=True, embed_links=True)
     async def help_comm(self, ctx: commands.Context, *, command_arg: str = None):
         """Gets all cogs and commands of mine."""
-
-        await ctx.message.delete(delay=5)
 
         if not command_arg:
             await ctx.message.add_reaction("📬")
@@ -80,9 +78,9 @@ class Utilities(commands.Cog):
             command = self.bot.get_command(command_arg.lower())
             if command:
                 # print(str(command.cog))
-                if command.cog.qualified_name in self.mod_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
+                if command.cog.qualified_name in self.mod_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
                     raise commands.BadArgument("You don't have permission to view that command.")
-                elif command.cog.qualified_name in self.nerd_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 4):
+                elif command.cog.qualified_name in self.nerd_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
                     raise commands.BadArgument("You don't have permission to view that command.")
                 else:
                     await ctx.message.add_reaction("📬")
@@ -92,7 +90,7 @@ class Utilities(commands.Cog):
                     except Exception:
                         await ctx.send("I tried to DM you but couldn't. Make sure your DMs are enabled.")
             else:
-                await ctx.send("Command not found.", delete_after=5)
+                await ctx.send("Command not found.")
 
     @commands.command(name="usage", hidden=True)
     @commands.guild_only()
@@ -107,22 +105,21 @@ class Utilities(commands.Cog):
         """
         
         bot_chan = self.bot.settings.guild().channel_botspam
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5) and ctx.channel.id != bot_chan:
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
 
-        await ctx.message.delete(delay=5)
         command = self.bot.get_command(command_arg.lower())
         if command:
             embed = await self.get_usage_embed(ctx, command)
             await ctx.send(embed=embed)
         else:
-            await ctx.send("Command not found.", delete_after=5)
+            await ctx.send("Command not found.")
 
     async def get_usage_embed(self, ctx, command):
-        if command.cog.qualified_name in self.mod_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
+        if command.cog.qualified_name in self.mod_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument("You don't have permission to view that command.")
-        elif command.cog.qualified_name in self.nerd_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 4):
+        elif command.cog.qualified_name in self.nerd_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument("You don't have permission to view that command.")
         else:
             args = ""

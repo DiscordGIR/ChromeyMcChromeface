@@ -23,7 +23,6 @@ async def setup():
     guild.role_mute          = 123  # put in the role IDs for your server here
     
     guild.channel_botspam        = 123  # put in the channel IDs for your server here
-    guild.channel_emoji_log      = 123  # put in the channel IDs for your server here
     guild.channel_private        = 123  # put in the channel IDs for your server here
     guild.channel_reaction_roles = 123  # put in the channel IDs for your server here
     guild.channel_reports        = 123  # put in the channel IDs for your server here

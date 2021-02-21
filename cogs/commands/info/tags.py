@@ -54,16 +54,13 @@ class Tags(commands.Cog):
         """
 
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be a Nerd or higher to use that command.")
 
         if not name.isalnum():
-            await ctx.message.delete()
             raise commands.BadArgument("Tag name must be alphanumeric.")
 
         if (await self.bot.settings.get_tag(name.lower())) is not None:
-            await ctx.message.delete()
             raise commands.BadArgument("Tag with that name already exists.")
 
         tag = Tag()
@@ -80,8 +77,7 @@ class Tags(commands.Cog):
 
         await self.bot.settings.add_tag(tag)
 
-        await ctx.message.reply(f"Added new tag!", embed=await self.tag_embed(tag), delete_after=10)
-        await ctx.message.delete(delay=10)
+        await ctx.message.reply(f"Added new tag!", embed=await self.tag_embed(tag))
     
     async def do_content_parsing(self, url):
         async with aiohttp.ClientSession() as session:
@@ -145,7 +141,6 @@ class Tags(commands.Cog):
         """
 
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be a Genius or higher to use that command.")
 
@@ -153,12 +148,10 @@ class Tags(commands.Cog):
 
         tag = await self.bot.settings.get_tag(name)
         if tag is None:
-            await ctx.message.delete()
             raise commands.BadArgument("That tag does not exist.")
 
         await self.bot.settings.remove_tag(name)
-        await ctx.message.reply("Deleted.", delete_after=5)
-        await ctx.message.delete(delay=5)
+        await ctx.message.reply("Deleted.")
 
     @commands.guild_only()
     @commands.command(name="tag", aliases=['t'])
@@ -179,7 +172,6 @@ class Tags(commands.Cog):
         tag = await self.bot.settings.get_tag(name)
         
         if tag is None:
-            await ctx.message.delete()
             raise commands.BadArgument("That tag does not exist.")
         
         file = tag.image.read()

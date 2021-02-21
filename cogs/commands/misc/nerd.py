@@ -56,7 +56,6 @@ class Nerd(commands.Cog):
 
         embed, f = await self.prepare_issues_embed(title, description, ctx.message)
         await channel.send(embed=embed, file=f)
-        await ctx.message.delete()
 
     async def prepare_issues_embed(self, title, description, message):
         embed = discord.Embed(title=title)

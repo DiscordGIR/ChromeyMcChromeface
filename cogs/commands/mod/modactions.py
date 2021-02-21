@@ -99,7 +99,7 @@ class ModActions(commands.Cog):
         
         if isinstance(user, discord.Member):
             try:
-                await user.send(f"You were warned in {ctx.guild.name}. Please note that you will be kicked at 400 points and banned at 600 points.", embed=log)
+                await user.send(f"You were warned in {ctx.guild.name}.", embed=log)
             except Exception:
                 dmed = False
 
@@ -109,7 +109,7 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.command(name="liftwarn")
     async def liftwarn(self, ctx: commands.Context, user: discord.Member, case_id: int, *, reason: str = "No reason.") -> None:
-        """Mark a warn as lifted and remove points. (mod only)
+        """Mark a warn as lifted. (mod only)
 
         Example usage:
         --------------
@@ -120,7 +120,7 @@ class ModActions(commands.Cog):
         user : discord.Member
             User to remove warn from
         case_id : int
-            The ID of the case for which we want to remove points
+            The ID of the case for which lift
         reason : str, optional
             Reason for lifting warn, by default "No reason."
 
@@ -480,8 +480,7 @@ class ModActions(commands.Cog):
         await user.add_roles(mute_role)
 
         log = await logging.prepare_mute_log(ctx.author, user, case)
-        await ctx.message.reply(embed=log, delete_after=10)
-        await ctx.message.delete(delay=10)
+        await ctx.message.reply(embed=log)
 
         log.remove_author()
         log.set_thumbnail(url=user.avatar_url)
@@ -539,8 +538,7 @@ class ModActions(commands.Cog):
 
         log = await logging.prepare_unmute_log(ctx.author, user, case)
 
-        await ctx.message.reply(embed=log, delete_after=10)
-        await ctx.message.delete(delay=10)
+        await ctx.message.reply(embed=log)
 
         dmed = True
         try:
@@ -560,6 +558,7 @@ class ModActions(commands.Cog):
     @kick.error
     @editreason.error
     async def info_error(self, ctx, error):
+        await ctx.message.delete(delay=5)
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)
             or isinstance(error, commands.BadUnionArgument)
