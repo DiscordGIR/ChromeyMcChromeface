@@ -34,12 +34,12 @@ initial_extensions = [
                     'cogs.commands.mod.modutils',
                     'cogs.commands.misc.admin',
                     'cogs.commands.misc.misc',
+                    'cogs.commands.misc.nerd',
                     'cogs.commands.info.help',
                     'cogs.commands.info.stats',
                     'cogs.commands.info.tags',
                     'cogs.commands.info.userinfo',
                     'cogs.commands.mod.filter',
-                    'cogs.monitors.birthday',
                     'cogs.monitors.filter',
                     'cogs.monitors.logging',
                     'cogs.monitors.reactionroles',
@@ -65,7 +65,7 @@ class Bot(commands.Bot):
             return
         
         if message.guild is not None and message.guild.id == self.settings.guild_id:
-            if not self.settings.permissions.hasAtLeast(message.guild, message.author, 6):
+            if not self.settings.permissions.hasAtLeast(message.guild, message.author, 2):
                 if await self.filter(message):
                     return
                                 
@@ -106,18 +106,15 @@ class Bot(commands.Bot):
                         (not word.false_positive and word.word.lower() in folded_without_spaces) or \
                         (not word.false_positive and word.word.lower() in folded_without_spaces_and_punctuation):
                         # remove all whitespace, punctuation in message and run filter again
-                        dev_role = message.guild.get_role(self.settings.guild().role_dev)
-                        if not (word.piracy and message.channel.id == self.settings.guild().channel_development and dev_role in message.author.roles):
-                            # ignore if this is a piracy word and the channel is #development and the user has dev role
-                            word_found = True
-                            await self.delete(message)
-                            if not reported:
-                                await self.do_filter_notify(message.author, message.channel, word.word)
-                                await self.ratelimit(message)
-                                reported = True
-                            if word.notify:
-                                await report(self, message, message.author, word.word)
-                                return True
+                        word_found = True
+                        await self.delete(message)
+                        if not reported:
+                            await self.do_filter_notify(message.author, message.channel, word.word)
+                            await self.ratelimit(message)
+                            reported = True
+                        if word.notify:
+                            await report(self, message, message.author, word.word)
+                            return True
         return word_found
     
     async def do_invite_filter(self, message):
@@ -162,7 +159,7 @@ class Bot(commands.Bot):
             pass
 
     async def do_filter_notify(self, member, channel, word):
-        message = "Your message contained a word you aren't allowed to say in r/Jailbreak. This could be either hate speech or the name of a piracy tool/source. Please refrain from saying it!"
+        message = "Your message contained a word you aren't allowed to say in r/ChromeOS. Please refrain from saying it!"
         footer = "Repeatedly triggering the filter will automatically result in a mute."
         try:
             embed = discord.Embed(description=f"{message}\n\nFiltered word found: **{word}**", color=discord.Color.orange())
@@ -218,7 +215,7 @@ class Bot(commands.Bot):
         log = await logger.prepare_mute_log(ctx.me, user, case)
 
         try:
-            await user.send("You have been muted in r/Jailbreak", embed=log)
+            await user.send("You have been muted in r/ChromeOS", embed=log)
         except Exception:
             pass           
 

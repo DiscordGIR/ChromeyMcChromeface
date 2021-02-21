@@ -67,7 +67,6 @@ class ModUtils(commands.Cog):
         embed = discord.Embed(title="Transferred profile")
         embed.description = f"We transferred {oldmember.mention}'s profile to {newmember.mention}"
         embed.color = discord.Color.blurple()
-        embed.add_field(name="Level", value=u.level)
         embed.add_field(name="Cases", value=f"We transfered {case_count} cases")
 
         await ctx.message.reply(embed=embed)

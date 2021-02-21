@@ -16,13 +16,9 @@ Moderation bot for r/Jailbreak
 4. `poetry shell`
 5. Create a file called `.env`. in the root of the project and define the following:
 ```
-BOTTY_TOKEN      = "DISCORD TOKEN"
-BOTTY_OWNER      = OWNER ID (int)
-BOTTY_MAINGUILD  = MAIN GUILD ID (int)
-LAVALINK_PASS    = "yourpasswwordhere"
-
--- you only need BOTTY_ENV if using locally
-BOTTY_ENV        = "DEVELOPMENT"
+CHROMEY_TOKEN      = "DISCORD TOKEN"
+CHROMEY_OWNER      = OWNER ID (int)
+CHROMEY_MAINGUILD  = MAIN GUILD ID (int)
 ```
 
 6. Download the latest version of the Lavalink jar file from [here](https://github.com/Frederikam/Lavalink/releases/), and put it in the root of the project

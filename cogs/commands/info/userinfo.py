@@ -112,7 +112,7 @@ class UserInfo(commands.Cog):
             joined = user.joined_at.strftime("%B %d, %Y, %I:%M %p") + " UTC"
         else:
             roles = "No roles."
-            joined = "User not in r/Jailbreak."
+            joined = "User not in r/ChromeOS."
 
         created = user.created_at.strftime("%B %d, %Y, %I:%M %p") + " UTC"
 

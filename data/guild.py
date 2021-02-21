@@ -18,7 +18,7 @@ class Guild(mongoengine.Document):
 
     emoji_logging_webhook     = mongoengine.IntField()
     filter_excluded_channels  = mongoengine.ListField(default=[])
-    filter_excluded_guilds    = mongoengine.ListField(default=[349243932447604736])
+    filter_excluded_guilds    = mongoengine.ListField(default=[253908290105376768])
     filter_words              = mongoengine.EmbeddedDocumentListField(FilterWord, default=[])
     logging_excluded_channels = mongoengine.ListField(default=[])
     tags                      = mongoengine.EmbeddedDocumentListField(Tag, default=[])

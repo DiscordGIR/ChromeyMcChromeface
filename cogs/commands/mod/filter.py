@@ -113,6 +113,9 @@ class Filters(commands.Cog):
         filters = self.bot.settings.guild().filter_words
         filters = sorted(filters, key=lambda word: word.word)
 
+        if len(filters) == 0:
+            raise commands.BadArgument("No filters are currently set. Use the !filteradd command to add some!")
+
         menus = MenuPages(source=FilterSource(
             enumerate(filters), key=lambda t: 1, per_page=12), clear_reactions_after=True)
 

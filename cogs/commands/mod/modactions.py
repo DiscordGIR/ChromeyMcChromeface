@@ -53,7 +53,7 @@ class ModActions(commands.Cog):
         Example usage:
         --------------
         `!warn <@user/ID> <reason (optional)>
-`
+
         Parameters
         ----------
         user : discord.Member
@@ -97,6 +97,7 @@ class ModActions(commands.Cog):
         # prepare log embed, send to user, channel where invoked
         log = await logging.prepare_warn_log(ctx.author, user, case)
         
+        dmed = True
         if isinstance(user, discord.Member):
             try:
                 await user.send(f"You were warned in {ctx.guild.name}.", embed=log)
@@ -480,10 +481,7 @@ class ModActions(commands.Cog):
         await user.add_roles(mute_role)
 
         log = await logging.prepare_mute_log(ctx.author, user, case)
-        await ctx.message.reply(embed=log)
 
-        log.remove_author()
-        log.set_thumbnail(url=user.avatar_url)
         dmed = True
         try:
             await user.send(f"You have been muted in {ctx.guild.name}", embed=log)
@@ -537,8 +535,6 @@ class ModActions(commands.Cog):
         await self.bot.settings.add_case(user.id, case)
 
         log = await logging.prepare_unmute_log(ctx.author, user, case)
-
-        await ctx.message.reply(embed=log)
 
         dmed = True
         try:

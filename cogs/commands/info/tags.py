@@ -39,7 +39,7 @@ class Tags(commands.Cog):
     @commands.guild_only()
     @commands.command(name="addtag", aliases=['addt'])
     async def addtag(self, ctx, name: str, *, content: str) -> None:
-        """Add a tag. Optionally attach an iamge. (Genius only)
+        """Add a tag. Optionally attach an iamge. (Nerds and up)
 
         Example usage:
         -------------
@@ -127,7 +127,7 @@ class Tags(commands.Cog):
     @commands.guild_only()
     @commands.command(name="deltag", aliases=['dtag'])
     async def deltag(self, ctx, name: str):
-        """Delete tag (geniuses only)
+        """Delete tag (Nerds and up)
 
         Example usage:
         --------------
@@ -142,7 +142,7 @@ class Tags(commands.Cog):
 
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
-                "You need to be a Genius or higher to use that command.")
+                "You need to be a Nerd or higher to use that command.")
 
         name = name.lower()
 
