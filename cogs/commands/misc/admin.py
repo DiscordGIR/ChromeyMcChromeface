@@ -15,7 +15,7 @@ class Admin(commands.Cog):
         """Set the bot's profile picture (admin only)
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 7):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
         if len(ctx.message.attachments) < 1:

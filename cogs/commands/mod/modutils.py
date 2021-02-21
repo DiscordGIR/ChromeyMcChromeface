@@ -5,7 +5,6 @@ import typing
 import humanize
 
 import discord
-from data.case import Case
 from discord.ext import commands
 
 
@@ -28,7 +27,7 @@ class ModUtils(commands.Cog):
             User to get info about, by default the author of command, by default None
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument(
                 "You need to be at least a Moderator to use that command.")
 
@@ -52,7 +51,7 @@ class ModUtils(commands.Cog):
 
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 6):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
             raise commands.BadArgument(
                 "You need to be at least an Administrator to use that command.")
 
@@ -81,183 +80,23 @@ class ModUtils(commands.Cog):
             pass
 
     @commands.guild_only()
-    @commands.command(name="clem")
-    async def clem(self, ctx: commands.Context, user: discord.Member) -> None:
-        """Sets user's XP and Level to 0, freezes XP, sets warn points to 599 (AARON ONLY)
+    @commands.command(name="birthday")
+    async def birthday(self, ctx: commands.Context, user: discord.Member) -> None:
+        """Give user birthday role for 24 hours (mod only)
 
         Example usage:
         --------------
-        `!clem <@user/ID>`
-
-        Parameters
-        ----------
-        user : discord.Member
-            User to put on clem
-
-        """
-
-        # must be owner
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 7):
-            raise commands.BadArgument(
-                "You need to be Aaron to use that command.")
-        if user.id == ctx.author.id:
-            await ctx.message.add_reaction("🤔")
-            raise commands.BadArgument("You can't call that on yourself.")
-        if user.id == self.bot.user.id:
-            await ctx.message.add_reaction("🤔")
-            raise commands.BadArgument("You can't call that on me :(")
-
-        results = await self.bot.settings.user(user.id)
-        results.is_clem = True
-        results.is_xp_frozen = True
-        results.warn_points = 599
-        results.save()
-
-        case = Case(
-            _id=self.bot.settings.guild().case_id,
-            _type="CLEM",
-            mod_id=ctx.author.id,
-            mod_tag=str(ctx.author),
-            punishment=str(-1),
-            reason="No reason."
-        )
-
-        # increment DB's max case ID for next case
-        await self.bot.settings.inc_caseid()
-        # add case to db
-        await self.bot.settings.add_case(user.id, case)
-
-        await ctx.message.reply(f"{user.mention} was put on clem.", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
-
-    @commands.guild_only()
-    @commands.command(name="musicban")
-    async def musicban(self, ctx: commands.Context, user: discord.Member) -> None:
-        """Ban a user from using music commands (mod only)
-
-        Example usage:
-        --------------
-        `!musicban <@user/ID>`
-
-        Parameters
-        ----------
-        user : discord.Member
-            User to ban from music
-        """
-
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
-            raise commands.BadArgument(
-                "You need to be at least a Moderator to use that command.")
-
-        if user.id == self.bot.user.id:
-            await ctx.message.add_reaction("🤔")
-            raise commands.BadArgument("You can't call that on me :(")
-
-        results = await self.bot.settings.user(user.id)
-        results.is_music_banned = True
-        results.save()
-        
-        await ctx.send("Done", delete_after=5)
-
-    @commands.guild_only()
-    @commands.command(name="birthdayexclude")
-    async def birthdayexclude(self, ctx: commands.Context, user: discord.Member) -> None:
-        """Remove a user's birthday (mod only)
-
-        Example usage:
-        --------------
-        `!birthdayexclude <@user/ID>`
-
-        Parameters
-        ----------
-        user : discord.Member
-            User to ban from birthdays
-        """
-
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
-            raise commands.BadArgument(
-                "You need to be at least a Moderator to use that command.")
-
-        if user.id == self.bot.user.id:
-            await ctx.message.add_reaction("🤔")
-            raise commands.BadArgument("You can't call that on me :(")
-
-        results = await self.bot.settings.user(user.id)
-        results.birthday_excluded = True
-        results.birthday = None
-        results.save()
-
-        birthday_role = ctx.guild.get_role(self.bot.settings.guild().role_birthday)
-        if birthday_role is None:
-            return
-
-        if birthday_role in user.roles:
-            await user.remove_roles(birthday_role)
-
-        await ctx.message.reply(f"{user.mention} was banned from birthdays.", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
-
-    @commands.guild_only()
-    @commands.command(name="removebirthday")
-    async def removebirthday(self, ctx: commands.Context, user: discord.Member) -> None:
-        """Remove a user's birthday (mod only)
-
-        Example usage:
-        --------------
-        `!removebirthday <@user/ID>`
-
-        Parameters
-        ----------
-        user : discord.Member
-            User to remove birthday of
-        """
-
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
-            raise commands.BadArgument(
-                "You need to be at least a Moderator to use that command.")
-
-        if user.id == self.bot.user.id:
-            await ctx.message.add_reaction("🤔")
-            raise commands.BadArgument("You can't call that on me :(")
-
-        results = await self.bot.settings.user(user.id)
-        results.birthday = None
-        results.save()
-
-        try:
-            self.bot.settings.tasks.cancel_unbirthday(user.id)
-        except Exception:
-            pass
-
-        birthday_role = ctx.guild.get_role(self.bot.settings.guild().role_birthday)
-        if birthday_role is None:
-            return
-
-        if birthday_role in user.roles:
-            await user.remove_roles(birthday_role)
-
-        await ctx.message.reply(f"{user.mention}'s birthday was removed.", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False), delete_after=5)
-        await ctx.message.delete(delay=5)
-
-    @commands.guild_only()
-    @commands.command(name="setbirthday")
-    async def setbirthday(self, ctx: commands.Context, user: discord.Member, month: int, date: int) -> None:
-        """Override a user's birthday (mod only)
-
-        Example usage:
-        --------------
-        `!setbirthday <@user/ID> <month (int)> <date (int)>`
+        `!birthday <@user/ID>`
 
         Parameters
         ----------
         user : discord.Member
             User whose bithday to set
-        month : int
-            Month of birthday
-        date : int
-            Date of birthday
+
         """
 
         # must be mod
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument(
                 "You need to be at least a Moderator to use that command.")
 
@@ -265,43 +104,26 @@ class ModUtils(commands.Cog):
             await ctx.message.add_reaction("🤔")
             raise commands.BadArgument("You can't call that on me :(")
 
-        try:
-            datetime.datetime(year=2020, month=month, day=date, hour=12)
-        except ValueError:
-            raise commands.BadArgument("You gave an invalid date.")
-
-        results = await self.bot.settings.user(user.id)
-        results.birthday = [month, date]
-        results.save()
-
-        await ctx.message.reply(f"{user.mention}'s birthday was set.", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False), delete_after=5)
-        await ctx.message.delete(delay=5)
-
-        if results.birthday_excluded:
-            return
-
         eastern = pytz.timezone('US/Eastern')
-        today = datetime.datetime.today().astimezone(eastern)
-        if today.month == month and today.day == date:
-            birthday_role = ctx.guild.get_role(self.bot.settings.guild().role_birthday)
-            if birthday_role is None:
-                return
-            print("here")
-            if birthday_role in user.roles:
-                return
-            print("here2")
-            now = datetime.datetime.now(eastern)
-            h = now.hour / 24
-            m = now.minute / 60 / 24
+        birthday_role = ctx.guild.get_role(self.bot.settings.guild().role_birthday)
+        if birthday_role is None:
+            return
+        if birthday_role in user.roles:
+            return
+        now = datetime.datetime.now(eastern)
+        h = now.hour / 24
+        m = now.minute / 60 / 24
 
-            try:
-                time = now + datetime.timedelta(days=1-h-m)
-                self.bot.settings.tasks.schedule_remove_bday(user.id, time)
-            except Exception as e:
-                print(e)
-                return
-            await user.add_roles(birthday_role)
-            await user.send(f"According to my calculations, today is your birthday! We've given you the {birthday_role} role for 24 hours.")
+        try:
+            time = now + datetime.timedelta(days=1-h-m)
+            self.bot.settings.tasks.schedule_remove_bday(user.id, time)
+        except Exception as e:
+            print(e)
+            return
+        await user.add_roles(birthday_role)
+        await user.send(f"According to my calculations, today is your birthday! We've given you the {birthday_role} role for 24 hours.")
+        
+        await ctx.message.reply(f"Gave {user.mention} the birthday role for 24 hours.", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
 
     async def prepare_rundown_embed(self, ctx, user):
         user_info = await self.bot.settings.user(user.id)
@@ -334,15 +156,6 @@ class ModUtils(commands.Cog):
         embed.add_field(name="Warn points",
                         value=user_info.warn_points, inline=True)
 
-        if user_info.is_clem:
-            embed.add_field(
-                name="XP", value="*this user is clemmed*", inline=True)
-        else:
-            embed.add_field(
-                name="XP", value=f"{user_info.xp} XP", inline=True)
-            embed.add_field(
-                name="Level", value=f"Level {user_info.level}", inline=True)
-
         embed.add_field(
             name="Roles", value=roles if roles else "None", inline=False)
 
@@ -356,12 +169,9 @@ class ModUtils(commands.Cog):
 
         return embed
 
-    @birthdayexclude.error
-    @removebirthday.error
-    @setbirthday.error
+    @birthday.error
     @transferprofile.error
     @rundown.error
-    @clem.error
     async def info_error(self, ctx, error):
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)

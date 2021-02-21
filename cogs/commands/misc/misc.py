@@ -18,10 +18,6 @@ class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.spam_cooldown = commands.CooldownMapping.from_cooldown(3, 15.0, commands.BucketType.channel)
-
-        self.CIJ_KEY = os.environ.get("CIJ_KEY")
-        self.cij_baseurl = "https://canijailbreak2.com/v1/pls"
-        self.devices_url = "https://api.ipsw.me/v4/devices"
         
     @commands.command(name="remindme")
     @commands.guild_only()
@@ -41,7 +37,7 @@ class Misc(commands.Cog):
         """
          
         bot_chan = self.bot.settings.guild().channel_botspam
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5) and ctx.channel.id != bot_chan:
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(f"Command only allowed in <#{bot_chan}>.")
         
         now = datetime.datetime.now()
@@ -77,7 +73,7 @@ class Misc(commands.Cog):
         """
         
         bot_chan = self.bot.settings.guild().channel_botspam
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5) and ctx.channel.id != bot_chan:
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             if await self.ratelimit(ctx.message):
                 raise commands.BadArgument("This command is on cooldown.")
 
@@ -129,7 +125,7 @@ class Misc(commands.Cog):
 
         bot_chan = self.bot.settings.guild().channel_botspam
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 5) and ctx.channel.id != bot_chan:
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
 
@@ -140,82 +136,6 @@ class Misc(commands.Cog):
         embed.set_footer(text=f"Requested by {ctx.author}")
         await ctx.send(embed=embed)
 
-    @commands.command(name="cij", aliases=['jelbrek'])
-    @commands.cooldown(2, 10, commands.BucketType.member)
-    @commands.guild_only()
-    async def cij(self, ctx, version: str, *, device: str):
-        """Check if your device is jailbreakable
-
-        Example usage
-        -------------
-        !cij 13.7 iPhone 8
-        !cij 14.0 iPad Pro <screensize> <generation>
-
-        Parameters
-        ----------
-        version : str
-            iOS/iPadOS version
-        device : str
-            Name of the device
-        """
-        
-        device = await self.device_name(device)
-
-        if device is None:
-            raise commands.BadArgument("Invalid device provided.\nReminder: the usage is `!cij <iOS> <device>`")
-        
-        async with aiohttp.ClientSession(headers={"Authorization": self.CIJ_KEY}) as session:
-            async with session.get(f"{self.cij_baseurl}/{device}/{version}") as resp:
-                if resp.status == 200:
-                    response = json.loads(await resp.text())
-                    if response['status'] == 0:
-                        if len(response['jelbreks']) > 0:
-                            embed = await self.prepare_jailbreak_embed(response['jelbreks'], device, version)
-                        else:
-                            embed = discord.Embed(description="Unfortunately, your device is not currently jailbreakable.", footer="Note: legacy jailbreaks below iOS 6 are currently unsupported!", color=discord.Color.red())
-                        await ctx.message.reply(embed=embed, delete_after=30, mention_author=False)
-                        await ctx.message.delete(delay=30)
-                    elif response['status'] == 1:
-                        raise commands.BadArgument("Seems like you gave a valid device but the API didn't recognize it!")
-                    elif response['status'] == 2:
-                        raise commands.BadArgument("This device doesn't support that version of iOS!")
-                    else:
-                        raise commands.BadArgument("API error: device not found!")
-                else:
-                    raise commands.BadArgument("Catastrophic API error!")
-        
-    async def prepare_jailbreak_embed(self, jailbreaks, device, ios):
-        embed = discord.Embed(title="Good news! Your device is jailbreakable!")
-        embed.description = f"{device} on iOS {ios}"
-        embed.color = discord.Color.green()
-        for jailbreak in jailbreaks:
-            embed.add_field(name=jailbreak['name'], value=f"*{jailbreak['type']}*\n[Link for more info]({jailbreak['url']})\nSupported on iOS versions {jailbreak['minIOS']}-{jailbreak['maxIOS']}")
-        
-        embed.set_footer(text="Powered by https://canijailbreak2.com from mass1ve-err0r")
-        return embed
-    
-    async def device_name(self, device):
-        device = device.lower()
-        device = device.replace('s plus', '+')
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.devices_url) as resp:
-                if resp.status == 200:
-                    data = await resp.text()
-                    devices = json.loads(data)
-                    for d in devices:
-                        name = re.sub(r'\((.*?)\)', "", d["name"])
-                        name = name.strip()
-                        name = name.replace('4[S]', '4S')
-                        if name.lower() == device:
-                            fix_casing = {'5s': '5S', '6s': '6S', '+': ' Plus'}
-                            for test in fix_casing:
-                                name = name.replace(test, fix_casing[test])
-
-                            return name
-        return None
-        
-    @cij.error
     @jumbo.error
     @remindme.error
     @avatar.error
