@@ -53,10 +53,10 @@ class Tags(commands.Cog):
             Content of the tag
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 4):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             await ctx.message.delete()
             raise commands.BadArgument(
-                "You need to be a Genius or higher to use that command.")
+                "You need to be a Nerd or higher to use that command.")
 
         if not name.isalnum():
             await ctx.message.delete()
@@ -114,7 +114,7 @@ class Tags(commands.Cog):
         """
 
         bot_chan = self.bot.settings.guild().channel_botspam
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 4) and ctx.channel.id != bot_chan:
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
 
@@ -144,7 +144,7 @@ class Tags(commands.Cog):
 
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 4):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             await ctx.message.delete()
             raise commands.BadArgument(
                 "You need to be a Genius or higher to use that command.")

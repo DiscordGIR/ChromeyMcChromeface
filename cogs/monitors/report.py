@@ -82,8 +82,6 @@ async def prepare_embed(bot, user, msg, word):
     embed.add_field(name="Join date", value=f"{joined} UTC", inline=True)
     embed.add_field(name="Account creation date",
                     value=f"{created} UTC", inline=True)
-    embed.add_field(name="Warn points",
-                    value=user_info.warn_points, inline=True)
 
     reversed_roles = user.roles
     reversed_roles.reverse()

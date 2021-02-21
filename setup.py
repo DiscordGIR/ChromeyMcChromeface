@@ -13,8 +13,7 @@ async def setup():
     guild = Guild()
     
     # you should have this setup in the .env file beforehand
-    guild._id          = int(os.environ.get("BOTTY_MAINGUILD"))
-    guild.nsa_guild_id = int(os.environ.get("BOTTY_NSAGUILD"))
+    guild._id          = int(os.environ.get("CHROMEY_MAINGUILD"))
     
     guild.case_id      = 1
     
@@ -50,5 +49,5 @@ async def setup():
     print("DONE")
 
 if __name__ == "__main__":
-        mongoengine.register_connection(alias="default", name="botty")
+        mongoengine.register_connection(alias="default", name="chromey")
         res = asyncio.get_event_loop().run_until_complete( setup() )

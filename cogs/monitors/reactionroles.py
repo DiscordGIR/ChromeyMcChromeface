@@ -363,64 +363,6 @@ class ReactionRoles(commands.Cog):
 
         await message.remove_reaction(payload.emoji, payload.member)
 
-    @commands.command(name="postembeds")
-    @commands.guild_only()
-    async def postembeds(self, ctx):
-        """Post the reaction role embeds (admin only)
-        """
-
-        if not ctx.guild.id == self.bot.settings.guild_id:
-            return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 6):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
-
-        channel = ctx.guild.get_channel(self.bot.settings.guild().channel_reaction_roles)
-
-        if channel is None:
-            return
-
-        def fix_emojis(desc):
-            custom_emojis = re.findall(r':[^:\s]*(?:::[^:\s]*)*:', desc)
-            for e in custom_emojis:
-                old = e
-                e = e.replace(':', '')
-                replacement = discord.utils.get(self.bot.emojis, name=e)
-                if replacement is not None:
-                    desc = desc.replace(old, str(replacement))
-            return desc
-
-        embed = discord.Embed(title="Request a role")
-        embed.color = discord.Color.purple()
-        embed.set_author(name="Jailbreak Updates")
-        embed.description = """
-                            If you want to be notified about Checkra1n updates click :checkra1n:\nIf you want to be notified about Odyssey updates click :odyssey:\nIf you want to be notified about Unc0ver updates click :unc0ver:\nIf you want to be notified about tvOS Jailbreaks updates click :tvOSJailbreak:
-                            """
-        embed.description = fix_emojis(embed.description)
-        await channel.send(embed=embed)
-
-        embed = discord.Embed(title="Request a role")
-        embed.color = discord.Color.red()
-        embed.set_author(name="Software Updates")
-        embed.description = """
-                            If you want to be notified about iOS updates click :iOS:\nIf you want to be notified about iPadOS updates click :ipadOS:\nIf you want to be notified about tvOS updates click :tvOS:\nIf you want to be notified about macOS updates click :macOS:\nIf you want to be notified about watchOS updates click :watchOS:\nIf you want to be notified about any Other Apple Updates click :otherupdates:
-                            """
-        embed.description = fix_emojis(embed.description)
-        await channel.send(embed=embed)
-
-        embed = discord.Embed(title="Request a role")
-        embed.color = discord.Color.green()
-        embed.set_author(name="Other Updates")
-        embed.description = """
-                            If you want to be notified about Apple Events click :AppleEventNews:\nIf you want to be notified about Subreddit News click :SubredditNews:\nIf you want to be notified about any Community Events click :CommunityEvents:\nIf you want to be notified about any Giveaways click :giveaway:
-                            """
-        embed.description = fix_emojis(embed.description)
-        await channel.send(embed=embed)
-
-        await ctx.message.delete()
-        await ctx.send("Done!", delete_after=5)
-
-    @postembeds.error
     @newreaction.error
     @movereactions.error
     @setreactions.error

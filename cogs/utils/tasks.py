@@ -10,7 +10,7 @@ from cogs.utils.logs import prepare_unmute_log
 from data.case import Case
 
 jobstores = {
-    'default': MongoDBJobStore(database="botty", collection="jobs", host="127.0.0.1"),
+    'default': MongoDBJobStore(database="chromey", collection="jobs", host="127.0.0.1"),
 }
 
 executors = {
@@ -84,32 +84,7 @@ class Tasks():
             User whose unmute task we want to cancel
         """
 
-        self.tasks.remove_job(str(id), 'default')
-
-    def cancel_unbirthday(self, id: int) -> None:
-        """When we manually unset the birthday of a user given by ID `id`, stop the task to remove the role.
-         Parameters
-        ----------
-        id : int
-            User whose task we want to cancel
-        """
-        self.tasks.remove_job(str(id+1), 'default')
-        
-    def schedule_end_giveaway(self, channel_id: int, message_id: int, date: datetime, winners: int) -> None:
-        """
-        Create a task to end a giveaway with message ID `id`, at date `date`
-
-        Parameters
-        ----------
-        channel_id : int
-            ID of the channel that the giveaway is in
-        message_id : int
-            Giveaway message ID
-        date : datetime.datetime
-            When to end the giveaway
-        """
-
-        self.tasks.add_job(end_giveaway_callback, 'date', id=str(message_id+2), next_run_time=date, args=[channel_id, message_id, winners], misfire_grace_time=3600)
+        self.tasks.remove_job(str(id), 'default')        
 
     def schedule_reminder(self, id: int, reminder: str, date: datetime) -> None:
         """Create a task to remind someone of id `id` of something `reminder` at time `date`
@@ -265,87 +240,3 @@ async def remove_bday(id: int) -> None:
     user = guild.get_member(id)
     await user.remove_roles(bday_role)
 
-def end_giveaway_callback(channel_id: int, message_id: int, winners: int) -> None:
-    """
-    Callback function for ending a giveaway
-
-    Parameters
-    ----------
-    channel_id : int
-        ID of the channel that the giveaway is in
-    message_id : int
-        Message ID of the giveaway
-    """
-
-    BOT_GLOBAL.loop.create_task(end_giveaway(channel_id, message_id, winners))
-
-async def end_giveaway(channel_id: int, message_id: int, winners: int) -> None:
-    """
-    End a giveaway.
-
-    Parameters
-    ----------
-    channel_id : int
-        ID of the channel that the giveaway is in
-    message_id : int
-        Message ID of the giveaway
-    """
-
-    guild = BOT_GLOBAL.get_guild(BOT_GLOBAL.settings.guild_id)
-    channel = guild.get_channel(channel_id)
-    
-    if channel is None:
-        return
-    try:
-        message = await channel.fetch_message(message_id)
-    except Exception:
-        return
-
-    embed = message.embeds[0]
-    embed.set_footer(text="Ended")
-    embed.set_field_at(0, name="Time remaining", value="This giveaway has ended.")
-    embed.timestamp = datetime.now()
-    embed.color = discord.Color.default()
-
-    reaction = message.reactions[0]
-    reacted_users = await reaction.users().flatten()
-    reacted_ids = [user.id for user in reacted_users]
-    reacted_ids.remove(BOT_GLOBAL.user.id)
-
-    if len(reacted_ids) < winners:
-        winners = len(reacted_ids)
-
-    rand_ids = random.sample(reacted_ids, winners)
-    winner_ids = []
-    mentions = []
-    tries = 0
-    for user_id in rand_ids:
-        tries += 1
-        member = guild.get_member(user_id)
-        while member is None or member.mention in mentions: # ensure that member hasn't left the server while simultaneously ensuring that we don't add duplicate members if we select a new random one
-            tries += 1
-            if tries > winners + 20:
-                member = None
-                break
-            member = guild.get_member(random.choice(reacted_ids))
-        if member is not None:
-            mentions.append(member.mention)
-            winner_ids.append(member.id)
-
-    g = await BOT_GLOBAL.settings.get_giveaway(id=message.id)
-    g.entries = reacted_ids
-    g.is_ended = True
-    g.previous_winners = winner_ids
-    g.save()
-
-    await message.edit(embed=embed)
-    await message.clear_reactions()
-
-    if not mentions:
-        await channel.send(f"No winner was selected for the giveaway of **{g.name}** because nobody entered.")
-        return
-
-    if winners == 1:
-        await channel.send(f"Congratulations {mentions[0]}! You won the giveaway of **{g.name}**! Please DM or contact <@{g.sponsor}> to collect.")
-    else:
-        await channel.send(f"Congratulations {', '.join(mentions)}! You won the giveaway of **{g.name}**! Please DM or contact <@{g.sponsor}> to collect.")

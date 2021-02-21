@@ -33,19 +33,13 @@ initial_extensions = [
                     'cogs.commands.mod.modactions',
                     'cogs.commands.mod.modutils',
                     'cogs.commands.misc.admin',
-                    'cogs.commands.misc.genius',
                     'cogs.commands.misc.misc',
-                    'cogs.commands.misc.subnews',
-                    'cogs.commands.misc.stonks',
-                    'cogs.commands.misc.giveaway',
-                    'cogs.commands.info.devices',
                     'cogs.commands.info.help',
                     'cogs.commands.info.stats',
                     'cogs.commands.info.tags',
                     'cogs.commands.info.userinfo',
                     'cogs.commands.mod.filter',
                     'cogs.monitors.birthday',
-                    'cogs.monitors.boosteremojis',
                     'cogs.monitors.filter',
                     'cogs.monitors.logging',
                     'cogs.monitors.reactionroles',
@@ -89,7 +83,7 @@ class Bot(commands.Bot):
         if message.channel.id in guild.filter_excluded_channels:
             return False
 
-        return await self.do_word_filter(message, guild) or await self.do_invite_filter(message) or await self.do_spoiler_filter(message, guild)
+        return await self.do_word_filter(message, guild) or await self.do_invite_filter(message)
     
     async def do_word_filter(self, message, guild):
         """
@@ -162,33 +156,6 @@ class Bot(commands.Bot):
                             return True
         return False
     
-    async def do_spoiler_filter(self, message, guild):
-        """
-        SPOILER FILTER
-        """
-        if not self.settings.permissions.hasAtLeast(message.guild, message.author, 5):
-            if re.search(self.spoiler_filter, message.content, flags=re.S):
-                await self.delete(message)
-                return True
-
-            for a in message.attachments:
-                if a.is_spoiler():
-                    await self.delete(message)
-                    return True
-
-        """
-        NEWLINE FILTER
-        """
-        if not self.settings.permissions.hasAtLeast(message.guild, message.author, 5):
-            if len(message.content.splitlines()) > 100:
-                dev_role = message.guild.get_role(guild.role_dev)
-                if not dev_role or dev_role not in message.author.roles:
-                    await self.delete(message)
-                    await self.ratelimit(message)
-                    return True
-
-        return False
-
     async def delete(self, message):
         try:
             await message.delete()
@@ -285,7 +252,7 @@ async def send_error(ctx, error):
 
 # Here we load our extensions(cogs) listed above in [initial_extensions].
 if __name__ == '__main__':
-    bot.owner_id = int(os.environ.get("BOTTY_OWNER"))
+    bot.owner_id = int(os.environ.get("CHROMEY_OWNER"))
     bot.send_error = send_error
     bot.remove_command("help")
     for extension in initial_extensions:
@@ -298,9 +265,8 @@ async def on_ready():
 
     print(
         f'\n\nLogged in as: {bot.user.name} - {bot.user.id}\nVersion: {discord.__version__}\n')
-    bot.load_extension('cogs.commands.misc.music')
     await bot.settings.load_tasks()
     print(f'Successfully logged in and booted...!')
 
 
-bot.run(os.environ.get("BOTTY_TOKEN"), bot=True, reconnect=True)
+bot.run(os.environ.get("CHROMEY_TOKEN"), bot=True, reconnect=True)

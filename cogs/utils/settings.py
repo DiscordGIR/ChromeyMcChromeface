@@ -9,7 +9,6 @@ from data.filterword import FilterWord
 from data.guild import Guild
 from data.tag import Tag
 from data.user import User
-from data.giveaway import Giveaway
 from discord.ext import commands
 
 
@@ -34,10 +33,10 @@ class Settings(commands.Cog):
             Instance of discord.Client, passed in when the Cog is initialized.
         """
 
-        mongoengine.register_connection(alias="default", name="botty")
+        mongoengine.register_connection(alias="default", name="chromey")
         self.tasks = None
         self.bot = bot
-        self.guild_id = int(os.environ.get("BOTTY_MAINGUILD"))
+        self.guild_id = int(os.environ.get("CHROMEY_MAINGUILD"))
         self.permissions = Permissions(self.bot, self)
 
         print("Loaded database")
@@ -55,37 +54,6 @@ class Settings(commands.Cog):
         """
 
         return Guild.objects(_id=self.guild_id).first()
-
-    async def get_nsa_channel(self, id) -> dict:
-        """Returns the state of the main guild from the database.
-
-        Returns
-        -------
-        Guild
-            The Guild document object that holds information about the main guild.
-        """
-
-        _map = self.guild().nsa_mapping
-        if str(id) in _map:
-            return _map[str(id)]
-        return None
-
-    async def add_nsa_channel(self, main_channel_id, channel_id, webhook_id) -> dict:
-        """Returns the state of the main guild from the database.
-
-        Returns
-        -------
-        Guild
-            The Guild document object that holds information about the main guild.
-        """
-
-        g = self.guild()
-        _map = g.nsa_mapping
-        _map[str(main_channel_id)] = {
-            "channel_id": channel_id,
-            "webhook_id": webhook_id,
-        }
-        g.save()
 
     async def all_rero_mappings(self):
         g = self.guild()
@@ -125,15 +93,6 @@ class Settings(commands.Cog):
         g = Guild.objects(_id=self.guild_id).first()
         g.emoji_logging_webhook = id
         g.save()
-
-    async def leaderboard(self) -> list:
-        return User.objects[0:100].only('_id', 'xp').order_by('-xp', '-_id').select_related()
-
-    async def leaderboard_rank(self, xp):
-        users = User.objects().only('_id', 'xp')
-        overall = users().count()
-        rank = users(xp__gte=xp).count()
-        return (rank, overall)
 
     async def inc_caseid(self) -> None:
         """Increments Guild.case_id, which keeps track of the next available ID to
@@ -229,37 +188,6 @@ class Settings(commands.Cog):
             return True
         return False
 
-    async def inc_points(self, _id: int, points: int) -> None:
-        """Increments the warnpoints by `points` of a user whose ID is given by `_id`.
-        If the user doesn't have a User document in the database, first create that.
-
-        Parameters
-        ----------
-        _id : int
-            The user's ID to whom we want to add/remove points
-        points : int
-            The amount of points to increment the field by, can be negative to remove points
-        """
-
-        # first we ensure this user has a User document in the database before continuing
-        await self.user(_id)
-        User.objects(_id=_id).update_one(inc__warn_points=points)
-
-    async def set_warn_kicked(self, _id: int) -> None:
-        """Set the `was_warn_kicked` field in the User object of the user, whose ID is given by `_id`,
-        to True. (this happens when a user reaches 400+ points for the first time and is kicked).
-        If the user doesn't have a User document in the database, first create that.
-
-        Parameters
-        ----------
-        _id : int
-            The user's ID who we want to set `was_warn_kicked` for.
-        """
-
-        # first we ensure this user has a User document in the database before continuing
-        await self.user(_id)
-        User.objects(_id=_id).update_one(set__was_warn_kicked=True)
-
     async def get_case(self, _id: int, case_id: int) -> Case:
         """Get the case with ID `case_id`, which belongs to the punishee given by ID `_id`.
         If the user doesn't have a Cases document in the database, first create that.
@@ -311,8 +239,6 @@ class Settings(commands.Cog):
         u.save()
         
         u2 = await self.user(oldmember)
-        u2.xp = 0
-        u2.level = 0
         u2.save()
         
         cases = await self.cases(oldmember)
@@ -324,9 +250,6 @@ class Settings(commands.Cog):
         cases2.save()
         
         return u, len(cases.cases)
-
-    async def retrieve_birthdays(self, date):
-        return User.objects(birthday=date)
 
     async def cases(self, id: int) -> Cases:
         """Return the Document representing the cases of a user, whose ID is given by `id`
@@ -380,62 +303,15 @@ class Settings(commands.Cog):
         cases.reverse()
         return cases[0:3]
     
-    async def get_giveaway(self, id: int) -> Giveaway:
-        """
-        Return the Document representing a giveaway, whose ID (message ID) is given by `id`
-        If the giveaway doesn't exist in the database, then None is returned.
-
-        Parameters
-        ----------
-        id : int
-            The ID (message ID) of the giveaway
-        
-        Returns
-        -------
-        Giveaway
-        """
-        giveaway = Giveaway.objects(_id=id).first()
-        return giveaway
-    
-    async def add_giveaway(self, id: int, channel: int, name: str, entries: list, winners: int, ended: bool = False, prev_winners=[]) -> None:
-        """
-        Add a giveaway to the database.
-
-        Parameters
-        ----------
-        id : int
-            The message ID of the giveaway
-        channel : int
-            The channel ID that the giveaway is in
-        name : str
-            The name of the giveaway.
-        entries : list
-            A list of user IDs who have entered (reacted to) the giveaway.
-        winners : int
-            The amount of winners that will be selected at the end of the giveaway.
-        """
-        giveaway = Giveaway()
-        giveaway._id = id
-        giveaway.channel = channel
-        giveaway.name = name
-        giveaway.entries = entries
-        giveaway.winners = winners
-        giveaway.is_ended = ended
-        giveaway.previous_winners = prev_winners
-        giveaway.save()
-
 
 class Permissions:
     """A way of calculating a user's permissions.
     Level 0 is everyone.
-    Level 1 is people with Member+ role
-    Level 2 is people with Member Pro role
-    Level 3 is people with Member Edition role
-    Level 4 is people with Genius role
-    Level 5 is people with Moderator role
-    Level 6 is Admins
-    Level 7 is the Guild owner (Aaron)
-    Level 9 and 10 is the bot owner
+    Level 1 is people with Nerds role
+    Level 2 is people with Moderator role
+    Level 3 is Admins
+    Level 4 is the Guild owner (nt4)
+    Level 5 is the bot owner
 
     """
 
@@ -461,44 +337,28 @@ class Permissions:
             0: lambda x, y: True,
 
             1: (lambda guild, m: self.hasAtLeast(guild, m, 2) or (guild.id == guild_id
-                and guild.get_role(the_guild.role_memberplus) in m.roles)),
+                and guild.get_role(the_guild.role_nerds) in m.roles)),
 
             2: (lambda guild, m: self.hasAtLeast(guild, m, 3) or (guild.id == guild_id
-                and guild.get_role(the_guild.role_memberpro) in m.roles)),
-
-            3: (lambda guild, m: self.hasAtLeast(guild, m, 4) or (guild.id == guild_id
-                and guild.get_role(the_guild.role_memberedition) in m.roles)),
-
-            4: (lambda guild, m: self.hasAtLeast(guild, m, 5) or (guild.id == guild_id
-                and guild.get_role(the_guild.role_genius) in m.roles)),
-
-            5: (lambda guild, m: self.hasAtLeast(guild, m, 6) or (guild.id == guild_id
                 and guild.get_role(the_guild.role_moderator) in m.roles)),
 
-            6: (lambda guild, m: self.hasAtLeast(guild, m, 7) or (guild.id == guild_id
+            3: (lambda guild, m: self.hasAtLeast(guild, m, 4) or (guild.id == guild_id
                 and m.guild_permissions.manage_guild)),
 
-            7: (lambda guild, m: self.hasAtLeast(guild, m, 9) or (guild.id == guild_id
+            4: (lambda guild, m: self.hasAtLeast(guild, m, 5) or (guild.id == guild_id
                 and m == guild.owner)),
 
-            9: (lambda guild, m: guild.id == guild_id
-                and m.id == bot.owner_id),
-
-            10: (lambda guild, m: guild.id == guild_id
+            5: (lambda guild, m: guild.id == guild_id
                  and m.id == bot.owner_id),
         }
 
         self.permission_names = {
             0: "Everyone and up",
-            1: "Member Plus and up",
-            2: "Member Pros and up",
-            3: "Member Editions and up",
-            4: "Geniuses and up",
-            5: "Moderators and up",
-            6: "Administrators and up",
-            7: "Guild owner (Aaron) and up",
-            9: "Bot owner",
-            10: "Bot owner",
+            1: "Nerds and up",
+            2: "Moderators and up",
+            3: "Administrators and up",
+            4: "Guild owner (nt4) and up",
+            5: "Bot owner",
         }
 
     def hasAtLeast(self, guild: discord.Guild, member: discord.Member, level: int) -> bool:
