@@ -80,7 +80,7 @@ class Tags(commands.Cog):
 
         await self.bot.settings.add_tag(tag)
 
-        await ctx.message.reply(f"Added new tag!", embed=await self.tag_embed(tag))
+        await ctx.message.reply(f"Added new tag!")
     
     async def do_content_parsing(self, url):
         async with aiohttp.ClientSession() as session:

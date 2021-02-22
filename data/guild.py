@@ -10,12 +10,15 @@ class Guild(mongoengine.Document):
     role_moderator            = mongoengine.IntField()
     role_mute                 = mongoengine.IntField()
     role_birthday             = mongoengine.IntField()
+    role_helpers              = mongoengine.IntField()
+    role_rules                = mongoengine.IntField()
     
     channel_botspam           = mongoengine.IntField()
     channel_private           = mongoengine.IntField()
     channel_reaction_roles    = mongoengine.IntField()
     channel_reports           = mongoengine.IntField()
-    channel_deals           = mongoengine.IntField()
+    channel_support           = mongoengine.IntField()
+    channel_deals             = mongoengine.IntField()
 
     emoji_logging_webhook     = mongoengine.IntField()
     filter_excluded_channels  = mongoengine.ListField(default=[])

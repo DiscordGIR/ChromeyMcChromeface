@@ -273,20 +273,7 @@ class Nerd(commands.Cog):
                             member = menu.ctx.user_cache[user._id]
                                                 
                     embed.add_field(name=f"Rank {i+1}", value=f"{member.display_name} with {user.karma} karma", inline=False)
-                    # member_string = f'{f"({str(member)})" if member is not None else ""}'
-                    # embed.description += f'**Rank {i}**: *{member.display_name}* with {user.karma} karma\n'
-                # pushables = []
-                # for user in entry.items:
-                #     member  = ctx.guild.get_member(user._id)
-                #     if member and not ctx.channel.permissions_for(member).manage_messages:
-                #         pushables.append(v)
 
-                # for i, user in enumerate(pushables, start=1):
-                #     member = discord.utils.get(ctx.guild.members, id=v[0])
-                #     if not member:
-                #         embed.description += f'**Rank {i}**: {fetch_nick(v[0])} with {user.karma} karma\n'
-                #     else:
-                #         embed.description += f'**Rank {i}**: {member.mention } with {v[1]} karma\n'
                 return embed
 
         data = await self.bot.settings.leaderboard()
@@ -307,9 +294,40 @@ class Nerd(commands.Cog):
                 data_final, key=lambda t: 1, per_page=10), clear_reactions_after=True)
             await pages.start(ctx)
 
+    @commands.command(name='rules')
+    async def rules(self, ctx, member: discord.Member):
+        """Put user on timeout to read rules\nExample usage: `$rules @SlimShadyIAm#9999`"""
+        
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+
+        role = ctx.guild.get_role(self.bot.settings.guild().role_rules)
+        
+        if (role is None):
+            raise commands.BadArgument('rules role not found!')
+
+        try:
+            self.bot.settings.tasks.schedule_untimeout(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
+        except Exception:
+            raise commands.BadArgument("This user is probably already on timeout.")
+        
+        embed = discord.Embed(title="You have been put in timeout.", color=discord.Color(value=0xebde34), description=f'{ctx.author.name} thinks you need to review the rules. You\'ve been placed on timeout for 15 minutes. During this time, you won\'t be able to interact with the server').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url)
+        try:
+            await member.send(embed=embed)
+        except discord.Forbidden:
+            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_botspam)
+            await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed! You\'ll be timed out in 10 seconds.', embed=embed)
+            await asyncio.sleep(10)
+        
+        await member.add_roles(role)
+        
+        await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave <@{member.id}> the rules role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
+        
     @leaderboard.error
     @history.error
     @getkarma.error
+    @rules.error
     @modhistory.error
     @postembed.error
     async def info_error(self, ctx, error):

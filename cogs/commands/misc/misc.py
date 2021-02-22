@@ -5,6 +5,7 @@ from io import BytesIO
 
 import aiohttp
 import discord
+from discord import mentions
 import humanize
 import pytimeparse
 from discord.ext import commands
@@ -131,6 +132,19 @@ class Misc(commands.Cog):
         embed.set_footer(text=f"Requested by {ctx.author}")
         await ctx.send(embed=embed)
 
+    @commands.command(name='helpers')
+    @commands.cooldown(type=commands.BucketType.member, rate=1, per=86400)
+    async def helpers(self, ctx):
+        """Tag helpers, usable in #support once every 24 hours per user"""
+
+        if ctx.channel.id != self.bot.settings.guild().channel_support:
+           self.helpers.reset_cooldown(ctx)
+           raise commands.BadArgument(f'This command is only usable in <#{self.bot.settings.guild().channel_support}>!')
+           
+        helper_role = ctx.guild.get_role(self.bot.settings.guild().role_helpers)
+        await ctx.send(f'<@{ctx.author.id}> pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
+
+    @helpers.error
     @jumbo.error
     @remindme.error
     @avatar.error
@@ -144,6 +158,8 @@ class Misc(commands.Cog):
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
             await self.bot.send_error(ctx, error)
+        elif isinstance(error, commands.CommandOnCooldown):
+            await self.bot.send_error(ctx, "You can only use this command once every 24 hours.")
         else:
             await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()

@@ -60,6 +60,20 @@ class Tasks():
 
         self.tasks.add_job(unmute_callback, 'date', id=str(
             id), next_run_time=date, args=[id], misfire_grace_time=3600)
+    
+    def schedule_untimeout(self, id: int, date: datetime) -> None:
+        """Create a task to remove timeout for user given by ID `id`, at time `date`
+
+        Parameters
+        ----------
+        id : int
+            User to untimeout
+        date : datetime.datetime
+            When to untimeout
+        """
+
+        self.tasks.add_job(untimeout_callback, 'date', id=str(
+            id+3), next_run_time=date, args=[id], misfire_grace_time=3600)
 
     def schedule_remove_bday(self, id: int, date: datetime) -> None:
         """Create a task to remove birthday role from user given by ID `id`, at time `date`
@@ -233,4 +247,49 @@ async def remove_bday(id: int) -> None:
 
     user = guild.get_member(id)
     await user.remove_roles(bday_role)
+
+
+
+def untimeout_callback(id: int) -> None:
+    """Callback function for actually untimeout. Creates asyncio task
+    to do the actual untimeout.
+
+    Parameters
+    ----------
+    id : int
+        User who we want to untimeout
+    """
+
+    BOT_GLOBAL.loop.create_task(remove_timeout(id))
+
+
+async def remove_timeout(id: int) -> None:
+    """Remove the timeout role of the user given by ID `id`
+
+    Parameters
+    ----------
+    id : int
+        User to unmute
+    """
+
+    guild = BOT_GLOBAL.get_guild(BOT_GLOBAL.settings.guild_id)
+    if guild is None:
+        return
+    
+    member = guild.get_member(id)
+    if member is None:
+        return
+
+    role = BOT_GLOBAL.settings.guild().role_rules
+    if role is None:
+        return
+
+    embed=discord.Embed(title="Timeout finished.", color=discord.Color(value=0x37b83b), description='Removed your timeout role. Please behave, or we will have to take further action.')
+    try:
+        await member.send(embed=embed)
+        await member.remove_roles(role)
+    except discord.Forbidden:
+        channel = guild.get_channel(BOT_GLOBAL.settings.guild().channel_botspam)
+        await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed!', embed=embed)
+        await member.remove_roles(role)
 

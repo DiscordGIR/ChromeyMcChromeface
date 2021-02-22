@@ -46,6 +46,7 @@ initial_extensions = [
                     'cogs.monitors.filter',
                     'cogs.monitors.logging',
                     'cogs.monitors.reactionroles',
+                    'cogs.monitors.rolecount',
 ]
 
 intents = discord.Intents.default()
