@@ -130,7 +130,7 @@ class Misc(commands.Cog):
         embed.set_image(url=member.avatar_url)
         embed.color = discord.Color.random()
         embed.set_footer(text=f"Requested by {ctx.author}")
-        await ctx.send(embed=embed)
+        await ctx.message.reply(embed=embed)
 
     @commands.command(name='helpers')
     @commands.cooldown(type=commands.BucketType.member, rate=1, per=86400)
@@ -142,7 +142,7 @@ class Misc(commands.Cog):
            raise commands.BadArgument(f'This command is only usable in <#{self.bot.settings.guild().channel_support}>!')
            
         helper_role = ctx.guild.get_role(self.bot.settings.guild().role_helpers)
-        await ctx.send(f'<@{ctx.author.id}> pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
+        await ctx.message.reply(f'<@{ctx.author.id}> pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
 
     @helpers.error
     @jumbo.error

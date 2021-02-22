@@ -242,7 +242,7 @@ async def send_error(ctx, error):
     embed = discord.Embed(title=":(\nYour command ran into a problem")
     embed.color = discord.Color.red()
     embed.description = discord.utils.escape_markdown(f'{error}')
-    await ctx.send(embed=embed, delete_after=8)
+    await ctx.message.reply(embed=embed, delete_after=8)
 
 
 # Here we load our extensions(cogs) listed above in [initial_extensions].

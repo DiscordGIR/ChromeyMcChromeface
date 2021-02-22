@@ -199,8 +199,7 @@ class Tags(commands.Cog):
         match = [ command for command in res if command_name in command.name ]
 
         if len(match) == 0:
-            await ctx.send(embed=discord.Embed(title="An error occured!", color=discord.Color(value=0xEB4634), description=f'No commands found with that name!'))
-            return
+            raise commands.BadArgument(f'No commands found with that name!')
         #send paginated results
         pages = MenuPages(source=TagsSource(match, key=lambda t: 1, per_page=6), clear_reactions_after=True)
         await pages.start(ctx)

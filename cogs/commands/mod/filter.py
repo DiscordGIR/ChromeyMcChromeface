@@ -59,9 +59,9 @@ class Filters(commands.Cog):
         cur.save()
 
         if val:
-            await ctx.send("You will now be pinged for reports when offline")
+            await ctx.message.reply("You will now be pinged for reports when offline")
         else:
-            await ctx.send("You won't be pinged for reports when offline")
+            await ctx.message.reply("You won't be pinged for reports when offline")
 
     @commands.guild_only()
     @commands.command(name="filter")

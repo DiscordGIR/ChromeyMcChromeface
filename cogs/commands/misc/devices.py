@@ -66,7 +66,7 @@ class Devices(commands.Cog):
         for device in response:
             # if we find a match, send response
             if device["Codename"] == board:
-                await ctx.send(embed=Embed(title=f'{device["Codename"]} belongs to...', color=Color(value=0x37b83b), description=device["Brand names"]).set_footer(text=f"Powered by https://cros.tech/ (by Skylar), requested by {ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url))
+                await ctx.message.reply(embed=Embed(title=f'{device["Codename"]} belongs to...', color=Color(value=0x37b83b), description=device["Brand names"]).set_footer(text=f"Powered by https://cros.tech/ (by Skylar), requested by {ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url))
                 return
         
         # no match, send error response
@@ -104,7 +104,7 @@ class Devices(commands.Cog):
         search_results = [(device["Codename"], device["Brand names"])
                           for device in devices if 'Brand names' in device and search_term in device['Brand names'].lower()]
         if len(search_results) == 0:
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="A board with that name was not found!"))
+            raise commands.BadArgument("A board with that name was not found!")
         else:
             pages = NewMenuPages(source=Source(
                 search_results, key=lambda t: 1, per_page=8), clear_reactions_after=True)
@@ -169,7 +169,7 @@ class Devices(commands.Cog):
                         embed.add_field(name=f'Canary Channel', value=f'**Version**: {version[1]}\n**Platform**: {version[0]}')
                 
                 embed.set_footer(text=f"Powered by https://cros.tech/ (by Skylar), requested by {ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.avatar_url)
-                await ctx.send(embed=embed)
+                await ctx.message.reply(embed=embed)
                 return
 
         # board not found, error

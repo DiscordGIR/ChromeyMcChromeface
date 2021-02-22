@@ -96,7 +96,7 @@ class Karma(commands.Cog):
         embed.description += f'**Current karma**: {m.karma}\n'
         embed.set_footer(
             text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url)
-        await ctx.send(embed=embed)
+        await ctx.message.reply(embed=embed)
             
     @karma.command()
     async def give(self, ctx, member: discord.Member, val: int, *, reason: str = "No reason."):
