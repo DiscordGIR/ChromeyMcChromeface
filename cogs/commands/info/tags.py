@@ -178,6 +178,29 @@ class Tags(commands.Cog):
         response = await self.tag_response(tag, args)
         await ctx.message.reply(response, file=file, mention_author=False)
 
+    @commands.command(name='search')
+    async def search(self, ctx, command_name:str):
+        """Search through commands for matching name by keyword\nExample usage: `!search cros`"""
+        
+        # ensure command name doesn't have illegal chars
+        pattern = re.compile("^[a-zA-Z0-9_-]*$")
+        if (not pattern.match(command_name)):
+            raise commands.BadArgument("The command name should only be alphanumeric characters with `_` and `-`!\nExample usage:`!search cam-sucks`")
+            
+        # always store command name as lowercase for case insensitivity
+        command_name = command_name.lower()
+
+        res = sorted(self.bot.settings.guild().tags, key=lambda tag: tag.name)
+        match = [ command for command in res if command_name in command.name ]
+
+        if len(match) == 0:
+            await ctx.send(embed=discord.Embed(title="An error occured!", color=discord.Color(value=0xEB4634), description=f'No commands found with that name!'))
+            return
+        #send paginated results
+        pages = MenuPages(source=TagsSource(match, key=lambda t: 1, per_page=6), clear_reactions_after=True)
+        await pages.start(ctx)
+       
+
     @tag.error
     @taglist.error
     @deltag.error
