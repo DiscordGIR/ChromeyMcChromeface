@@ -18,44 +18,44 @@ async def setup():
     BASE_DIR = dirname(dirname(abspath(__file__)))
     db_path = os.path.join(BASE_DIR, "ChromeyMcChromeface/commands.sqlite")
     
-    # commands = None
-    # users = None
-    # try:
-    #     conn = sqlite3.connect(db_path)
-    #     c = conn.cursor()
-    #     c.execute("SELECT * FROM commands ORDER BY command_name")
-    #     # c.execute("SELECT * FROM commands WHERE server_id = ? ORDER BY command_name", (int(os.environ.get("CHROMEY_MAINGUILD")),))
-    #     commands = c.fetchall()
+    commands = None
+    users = None
+    try:
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute("SELECT * FROM commands ORDER BY command_name")
+        # c.execute("SELECT * FROM commands WHERE server_id = ? ORDER BY command_name", (int(os.environ.get("CHROMEY_MAINGUILD")),))
+        commands = c.fetchall()
 
-    #     c.execute("SELECT * FROM users")
-    #     users = c.fetchall()
-    # finally:
-    #     conn.close()
+        c.execute("SELECT * FROM users")
+        users = c.fetchall()
+    finally:
+        conn.close()
         
-    # for command in commands:
-    #     tag = Tag()
-    #     tag._id = command[0]
+    for command in commands:
+        tag = Tag()
+        tag._id = command[0]
         
-    #     user_tag = None
-    #     for user in users:
-    #         if user[0] == int(command[2]):
-    #             user_tag = user[1]
-    #             tag.added_by_tag = user[1]
+        user_tag = None
+        for user in users:
+            if user[0] == int(command[2]):
+                user_tag = user[1]
+                tag.added_by_tag = user[1]
                 
-    #     if user_tag is None:
-    #         tag.added_by_tag = "Unknown"
+        if user_tag is None:
+            tag.added_by_tag = "Unknown"
         
-    #     tag.added_by_id = command[2]
-    #     tag.name = command[3]
-    #     tag.use_count = command[4]
-    #     tag.content = command[5]
-    #     tag.args = command[6] == "true"
+        tag.added_by_id = command[2]
+        tag.name = command[3]
+        tag.use_count = command[4]
+        tag.content = command[5]
+        tag.args = command[6] == "true"
         
-    #     guild.tags.append(tag)
-    #     # print(command[3], command[6])
-    # # you should have this setup in the .env file beforehand
+        guild.tags.append(tag)
+        # print(command[3], command[6])
+    # you should have this setup in the .env file beforehand
     
-    # guild.save()
+    guild.save()
 
     karma = None
     karma_history = None
