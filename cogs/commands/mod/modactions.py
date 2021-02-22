@@ -48,7 +48,7 @@ class ModActions(commands.Cog):
     @commands.bot_has_guild_permissions(kick_members=True, ban_members=True)
     @commands.command(name="warn")
     async def warn(self, ctx: commands.Context, user: typing.Union[discord.Member, int], *, reason: str = "No reason.") -> None:
-        """Warn a user (mod only)
+        """Warn a user (nerds and up)
 
         Example usage:
         --------------
@@ -63,8 +63,9 @@ class ModActions(commands.Cog):
 
         """
 
-        await self.check_permissions(ctx, user)
-
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
 
         # if the ID given is of a user who isn't in the guild, try to fetch the profile
         if isinstance(user, int):
@@ -412,7 +413,7 @@ class ModActions(commands.Cog):
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.command(name="mute")
     async def mute(self, ctx: commands.Context, user: discord.Member, dur: str = "", *, reason: str = "No reason.") -> None:
-        """Mute a user (mod only)
+        """Mute a user (nerds and up)
 
         Example usage:
         --------------
@@ -428,7 +429,9 @@ class ModActions(commands.Cog):
             Reason for mute, by default "No reason."
 
         """
-        await self.check_permissions(ctx, user)
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
 
         reason = discord.utils.escape_markdown(reason)
         reason = discord.utils.escape_mentions(reason)

@@ -227,8 +227,8 @@ class Settings(commands.Cog):
         return user
 
     async def leaderboard(self) -> list:
-        return User.objects[0:100].only('_id', 'karma').order_by('-karma', '-_id').select_related()
-    
+        return User.objects[0:30].only('_id', 'karma').order_by('-karma', '-_id').select_related()
+        
     async def karma_rank(self, _id) -> list:
         karma = (await self.bot.settings.user(_id)).karma
         users = User.objects().only('_id', 'karma')

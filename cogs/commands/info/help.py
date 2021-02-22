@@ -9,8 +9,8 @@ class Utilities(commands.Cog):
         self.bot = bot
         self.left_col_length = 17
         self.right_col_length = 80
-        self.mod_only = ["ModActions", "ModUtils", "Filters", "ReactionRoles", "Admin"]
-        self.nerd_only = ["Nerd", "Tags"]
+        self.mod_only = ["ModUtils", "Filters", "ReactionRoles", "Admin"]
+        self.nerd_only = ["ModActions", "Nerd", "Tags"]
 
     @commands.command(name="help", hidden=True)
     @commands.guild_only()

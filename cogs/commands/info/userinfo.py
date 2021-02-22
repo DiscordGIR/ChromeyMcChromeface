@@ -76,7 +76,7 @@ class UserInfo(commands.Cog):
         if user is None:
             user = ctx.author
 
-        is_mod = self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2)
+        is_mod = self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1)
 
         if isinstance(user, int):
             if not is_mod:

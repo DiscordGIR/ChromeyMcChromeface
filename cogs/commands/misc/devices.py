@@ -46,10 +46,6 @@ class Devices(commands.Cog):
             Board name to convert
         """
 
-        # ensure the board arg is only alphabetical chars
-        if (not board.isalpha()):
-            raise commands.BadArgument("You need to supply a board name! Example: `!b2d coral`")
-
         # case insensitivity
         board = board.lower()
 

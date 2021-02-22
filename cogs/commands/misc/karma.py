@@ -347,7 +347,7 @@ class Karma(commands.Cog):
                         else:
                             member = menu.ctx.user_cache[user._id]
                                                 
-                    embed.add_field(name=f"Rank {i+1}", value=f"{member.display_name} with {user.karma} karma", inline=False)
+                    embed.add_field(name=f"Rank {i+1}", value=f"{member.mention} ({member})\n{user.karma} karma", inline=False)
 
                 return embed
 
@@ -360,7 +360,7 @@ class Karma(commands.Cog):
             for u in data:
                 member = ctx.guild.get_member(u._id)    
                 if member:
-                    if not member.guild_permissions.manage_messages:
+                    if not self.bot.settings.permissions.hasAtLeast(member.guild, member, 1):
                         data_final.append(u)
                 else:
                     data_final.append(u)
