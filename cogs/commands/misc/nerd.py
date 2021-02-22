@@ -21,6 +21,8 @@ class NewMenuPages(menus.MenuPages):
 class Nerd(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.user_cache = {}
+        
        
     @commands.command(name="postembed")
     @commands.guild_only()
@@ -242,7 +244,60 @@ class Nerd(commands.Cog):
             data, key=lambda t: 1, per_page=10), clear_reactions_after=True)
         await pages.start(ctx)
 
+    @commands.command(name='leaderboard', aliases=["lb"])
+    async def leaderboard(self, ctx):
+        """(alias $lb) Karma leaderboard in current guild"""
 
+        ctx.user_cache = self.user_cache
+
+        class Source(menus.GroupByPageSource):
+            async def format_page(self, menu, entry):
+                embed = discord.Embed(
+                    title=f'Leaderboard: Page {menu.current_page +1}/{self.get_max_pages()}', color=discord.Color(value=0xfcba03))
+                embed.set_footer(icon_url=ctx.author.avatar_url,
+                                 text="Note: Nerds and Moderators were excluded from these results.")
+                embed.description = ""
+
+                for i, user in enumerate(entry.items):
+                    member = menu.ctx.guild.get_member(user._id)
+                    member_found =  member is not None
+                    if not member_found:
+                        if user._id not in menu.ctx.user_cache:
+                            try:
+                                member = await menu.ctx.bot.fetch_user(user._id)
+                                menu.ctx.user_cache[user._id] = member
+                            except Exception:
+                                member = None
+
+                        else:
+                            member = menu.ctx.user_cache[user._id]
+
+                    # member_string = f'{f"({str(member)})" if member is not None else ""}'
+                    embed.description += f'**Rank {i}**: {member.mention} with {user.karma} karma\n'
+                # pushables = []
+                # for user in entry.items:
+                #     member  = ctx.guild.get_member(user._id)
+                #     if member and not ctx.channel.permissions_for(member).manage_messages:
+                #         pushables.append(v)
+
+                # for i, user in enumerate(pushables, start=1):
+                #     member = discord.utils.get(ctx.guild.members, id=v[0])
+                #     if not member:
+                #         embed.description += f'**Rank {i}**: {fetch_nick(v[0])} with {user.karma} karma\n'
+                #     else:
+                #         embed.description += f'**Rank {i}**: {member.mention } with {v[1]} karma\n'
+                return embed
+
+        data = await self.bot.settings.leaderboard()
+        
+        if (len(data) == 0):
+           raise commands.BadArgument("No history in this guild!")
+        else:
+            pages = NewMenuPages(source=Source(
+                data, key=lambda t: 1, per_page=10), clear_reactions_after=True)
+            await pages.start(ctx)
+
+    @leaderboard.error
     @history.error
     @getkarma.error
     @modhistory.error
