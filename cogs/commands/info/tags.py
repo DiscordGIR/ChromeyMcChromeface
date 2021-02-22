@@ -6,13 +6,12 @@ from io import BytesIO
 
 import discord
 from data.tag import Tag
-from discord.ext import commands
-from discord.ext import menus
+from discord.ext import commands, menus
 
 
 class TagsSource(menus.GroupByPageSource):
     async def format_page(self, menu, entry):
-        embed = discord.Embed(title=f'Commands: Page {menu.current_page +1}/{self.get_max_pages()}', color=Color.blurple())
+        embed = discord.Embed(title=f'Commands: Page {menu.current_page +1}/{self.get_max_pages()}', color=discord.Color.blurple())
         for tag in entry.items:
             res = tag.content[:50] + "..." if len(tag.content) > 50 else tag.content
             argo = " [args]" if tag.args else ""
