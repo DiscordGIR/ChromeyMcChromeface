@@ -25,14 +25,29 @@ class Karma(commands.Cog):
     @commands.group()
     async def karma(self, ctx):
         """
-        Karma commands
+        Karma commands. Usage: !karma <subcommand> from below...
+        
+        Valid subcommands:
+        ------------------
+        get, set, give, take, leaderboard, history, modhistory
         """
         if ctx.invoked_subcommand is None:
-            raise commands.BadArgument("Invalid giveaway subcommand passed.")
+            raise commands.BadArgument("Invalid subcommand passed. Valid subcommands: get, set, give, take, leaderboard, history, modhistory")
    
     @karma.command()
     async def get(self, ctx, member: typing.Union[discord.Member, int]):
-        """(alias $getrank) Get a user's karma\nWorks with ID if the user has left the guild\nExample usage: `$getkarma @member` or `$getkarma 2342492304928`"""
+        """Get a user's karma 
+        
+        Example usage:
+        ---------------
+        `!karma get @member` or `$karma get 2342492304928`
+
+        Parameters
+        ----------
+        member : typing.Union[discord.Member, int]
+            Member whose karma to get
+        """
+        
 
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
@@ -53,9 +68,21 @@ class Karma(commands.Cog):
 
     @karma.command()
     async def set(self, ctx, member: discord.Member, val: int):
-        """Give or take karma from a user.\nYou may give or take up to 3 karma in a single command.\nOptionally, you can include a reason as an argument.\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`"""
+        """Force set a user's karma (mod only)
+        
+        Example Usage:
+        --------------
+        `!karma set @user 100`
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+        Parameters
+        ----------
+        member : discord.Member
+            Member whose karma to set
+        val : int
+            Karma value
+        """
+
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
             
@@ -73,8 +100,23 @@ class Karma(commands.Cog):
             
     @karma.command()
     async def give(self, ctx, member: discord.Member, val: int, *, reason: str = "No reason."):
-        """Give or take karma from a user.\nYou may give or take up to 3 karma in a single command.\nOptionally, you can include a reason as an argument.\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`"""
+        """ Give up to 3 karma to a user. Optionally, you can include a reason as an argument.
+        
+        Example usage:
+        --------------
+        `!karma give @member 3 reason blah blah blah`
 
+
+        Parameters
+        ----------
+        member : discord.Member
+            User to give karma to 
+        val : int
+            Amount of karma
+        reason : str, optional
+            Reason, by default "No reason."
+        """
+        
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
@@ -125,8 +167,23 @@ class Karma(commands.Cog):
 
     @karma.command()
     async def take(self, ctx, member: discord.Member, val: int, *, reason: str = "No reason."):
-        """Give or take karma from a user.\nYou may give or take up to 3 karma in a single command.\nOptionally, you can include a reason as an argument.\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`"""
+        """ Take up to 3 karma from a user. Optionally, you can include a reason as an argument.
+        
+        Example usage:
+        --------------
+        `!karma take @member 3 reason blah blah blah`
 
+
+        Parameters
+        ----------
+        member : discord.Member
+            User take karma from 
+        val : int
+            Amount of karma
+        reason : str, optional
+            Reason, by default "No reason."
+        """
+        
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
@@ -179,8 +236,18 @@ class Karma(commands.Cog):
 
     @karma.command()
     async def history(self, ctx, member: discord.Member):
-        """History of all karma, or a specific user's karma\nExample usage: `$history` or `$history @member`"""
+        """History of a specific user's karma
+        
+        Example usage:
+        --------------
+        `!karma history @member`
 
+        Parameters
+        ----------
+        member : discord.Member
+            Member whose karma history to get
+        """
+        
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
@@ -211,7 +278,17 @@ class Karma(commands.Cog):
         
     @karma.command()
     async def modhistory(self, ctx, member: discord.Member = None):
-        """History of all karma, or a specific user's karma\nExample usage: `$history` or `$history @member`"""
+        """History of a karma given by a user
+        
+        Example usage:
+        --------------
+        `!karma modhistory @member`
+
+        Parameters
+        ----------
+        member : discord.Member
+            Member whose karma history to get
+        """
 
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
@@ -243,7 +320,8 @@ class Karma(commands.Cog):
 
     @karma.command()
     async def leaderboard(self, ctx):
-        """(alias $lb) Karma leaderboard in current guild"""
+        """Get karma leaderboard for the server
+        """
 
         ctx.user_cache = self.user_cache
 
@@ -293,6 +371,7 @@ class Karma(commands.Cog):
   
     @karma.error
     @get.error
+    @set.error
     @give.error
     @take.error
     @leaderboard.error
