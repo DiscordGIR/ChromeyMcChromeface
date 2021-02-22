@@ -36,6 +36,7 @@ initial_extensions = [
                     'cogs.commands.misc.devices',
                     'cogs.commands.misc.misc',
                     'cogs.commands.misc.nerd',
+                    'cogs.commands.misc.karma',
                     'cogs.commands.info.help',
                     'cogs.commands.info.stats',
                     'cogs.commands.info.tags',
