@@ -70,7 +70,7 @@ class Bot(commands.Bot):
             return
         
         if message.guild is not None and message.guild.id == self.settings.guild_id:
-            if not self.settings.permissions.hasAtLeast(message.guild, message.author, 2):
+            if not self.settings.permissions.hasAtLeast(message.guild, message.author, 3):
                 if await self.filter(message):
                     return
                                 

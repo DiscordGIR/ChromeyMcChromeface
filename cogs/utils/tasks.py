@@ -336,7 +336,8 @@ async def remove_timeout(id: int) -> None:
     if member is None:
         return
 
-    role = guild.get_role(BOT_GLOBAL.settings.guild().role_rules)
+    role = guild.get_role(BOT_GLOBAL.settings.guild().role_timeout)
+    print(role)
     if role is None:
         return
 

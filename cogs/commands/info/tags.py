@@ -12,7 +12,7 @@ from discord.ext import menus
 
 class TagsSource(menus.GroupByPageSource):
     async def format_page(self, menu, entry):
-        embed = discord.Embed(title=f'Commands: Page {menu.current_page +1}/{self.get_max_pages()}')
+        embed = discord.Embed(title=f'Commands: Page {menu.current_page +1}/{self.get_max_pages()}', color=Color.blurple())
         for tag in entry.items:
             res = tag.content[:50] + "..." if len(tag.content) > 50 else tag.content
             argo = " [args]" if tag.args else ""

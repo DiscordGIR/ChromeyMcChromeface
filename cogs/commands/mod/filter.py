@@ -106,7 +106,7 @@ class Filters(commands.Cog):
 
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument(
                 "You need to be an administator or higher to use that command.")
 

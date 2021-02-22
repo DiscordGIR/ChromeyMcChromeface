@@ -10,7 +10,7 @@ import traceback
 class Source(menus.GroupByPageSource):
     async def format_page(self, menu, entry):
         embed = Embed(
-            title=f'Search results: Page {menu.current_page +1}/{self.get_max_pages()}')
+            title=f'Search results: Page {menu.current_page +1}/{self.get_max_pages()}', color=Color.blurple())
         for v in entry.items:
             embed.add_field(name=v[0], value=(
                 v[1][:250] + '...') if len(v[1]) > 250 else v[1], inline=False)
@@ -90,10 +90,6 @@ class Devices(commands.Cog):
                 
         if search_term == "":
             raise commands.BadArgument("You need to supply a boardname! Example: `!d2b acer chromebook`")
-        pattern = re.compile("^[a-zA-Z0-9_()&,/ -]*!")
-
-        if (not pattern.match(search_term)):
-            raise commands.BadArgument("Illegal characters in search term!")
 
         search_term = search_term.lower()
 

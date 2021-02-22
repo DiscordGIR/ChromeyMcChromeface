@@ -29,10 +29,10 @@ class Karma(commands.Cog):
         
         Valid subcommands:
         ------------------
-        get, set, give, take, leaderboard, history, modhistory
+        get, set, give, take, history, modhistory
         """
         if ctx.invoked_subcommand is None:
-            raise commands.BadArgument("Invalid subcommand passed. Valid subcommands: get, set, give, take, leaderboard, history, modhistory")
+            raise commands.BadArgument("Invalid subcommand passed. Valid subcommands: get, set, give, take, history, modhistory")
    
     @karma.command()
     async def get(self, ctx, member: typing.Union[discord.Member, int]):
@@ -40,7 +40,7 @@ class Karma(commands.Cog):
         
         Example usage:
         ---------------
-        `!karma get @member` or `$karma get 2342492304928`
+        `!karma get @member` or `!karma get 2342492304928`
 
         Parameters
         ----------
@@ -123,7 +123,7 @@ class Karma(commands.Cog):
 
         if val < 1 or val > 3:
             raise commands.BadArgument(
-                "You can give 1-3 karma in a command!\nExample usage: `$karma give @member 3 reason blah blah blah`")
+                "You can give 1-3 karma in a command!\nExample usage: `!karma give @member 3 reason blah blah blah`")
 
         if member.bot:
             raise commands.BadArgument(
@@ -190,7 +190,7 @@ class Karma(commands.Cog):
 
         if val < 1 or val > 3:
             raise commands.BadArgument(
-                "You can give 1-3 karma in a command!\nExample usage: `$karma give @member 3 reason blah blah blah`")
+                "You can give 1-3 karma in a command!\nExample usage: `!karma give @member 3 reason blah blah blah`")
 
         if member.bot:
             raise commands.BadArgument(
@@ -318,7 +318,7 @@ class Karma(commands.Cog):
             data, key=lambda t: 1, per_page=10), clear_reactions_after=True)
         await pages.start(ctx)
 
-    @karma.command()
+    @commands.command(name="leaderboard", aliases=["lb"])
     async def leaderboard(self, ctx):
         """Get karma leaderboard for the server
         """
