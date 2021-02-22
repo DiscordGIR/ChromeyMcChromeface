@@ -225,7 +225,7 @@ async def remind(id, reminder):
     try:
         await member.send(embed=embed)
     except Exception:
-        channel = guild.get_channel(BOT_GLOBAL.settings.guild().channel_botspam)
+        channel = guild.get_channel(BOT_GLOBAL.settings.guild().channel_offtopic)
         await channel.send(member.mention, embed=embed)
 
 def remove_bday_callback(id: int) -> None:
@@ -302,7 +302,7 @@ async def remove_rules(id: int) -> None:
         await member.send(embed=embed)
         await member.remove_roles(role)
     except discord.Forbidden:
-        channel = guild.get_channel(BOT_GLOBAL.settings.guild().channel_botspam)
+        channel = guild.get_channel(BOT_GLOBAL.settings.guild().channel_offtopic)
         await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed!', embed=embed)
         await member.remove_roles(role)
 

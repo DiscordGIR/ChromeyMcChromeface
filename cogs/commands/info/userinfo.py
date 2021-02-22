@@ -91,7 +91,7 @@ class UserInfo(commands.Cog):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
 
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not is_mod and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
@@ -148,7 +148,7 @@ class UserInfo(commands.Cog):
             user = ctx.author
             ctx.args[2] = user
 
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")

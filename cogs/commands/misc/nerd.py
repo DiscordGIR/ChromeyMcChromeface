@@ -14,7 +14,7 @@ class Nerd(commands.Cog):
     @commands.guild_only()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
     async def postembed(self, ctx, *, title: str):
-        """Post an embed in the current channel (Nerds only)
+        """Post an embed in the current channel (nerds and up)
 
         Example use:
         ------------
@@ -101,7 +101,7 @@ class Nerd(commands.Cog):
         try:
             await member.send(embed=embed)
         except discord.Forbidden:
-            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_botspam)
+            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_offtopic)
             await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed! You\'ll be timed out in 10 seconds.', embed=embed)
             await asyncio.sleep(10)
         
@@ -141,7 +141,7 @@ class Nerd(commands.Cog):
         try:
             await member.send(embed=embed)
         except discord.Forbidden:
-            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_botspam)
+            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_offtopic)
             await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed! You\'ll be timed out in 10 seconds.', embed=embed)
             await asyncio.sleep(10)
         

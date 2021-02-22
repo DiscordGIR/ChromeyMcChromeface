@@ -32,7 +32,7 @@ class Stats(commands.Cog):
 
         """
 
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
@@ -53,7 +53,7 @@ class Stats(commands.Cog):
         `!ping`
 
         """
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
@@ -80,7 +80,7 @@ class Stats(commands.Cog):
 
         """
 
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")
@@ -109,7 +109,7 @@ class Stats(commands.Cog):
         `!serverinfo`
 
         """
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")

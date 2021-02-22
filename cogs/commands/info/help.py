@@ -9,8 +9,8 @@ class Utilities(commands.Cog):
         self.bot = bot
         self.left_col_length = 17
         self.right_col_length = 80
-        self.mod_only = ["ModActions", "ModUtils", "Filters", "ReactionRoles", "Giveaway", "Admin"]
-        self.nerd_only = ["nerd"]
+        self.mod_only = ["ModActions", "ModUtils", "Filters", "ReactionRoles", "Admin"]
+        self.nerd_only = ["Nerd", "Tags"]
 
     @commands.command(name="help", hidden=True)
     @commands.guild_only()
@@ -104,7 +104,7 @@ class Utilities(commands.Cog):
             Name of command
         """
         
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
                 f"Command only allowed in <#{bot_chan}>")

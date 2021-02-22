@@ -34,7 +34,7 @@ class Misc(commands.Cog):
             What to remind you of
         """
          
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(f"Command only allowed in <#{bot_chan}>.")
         
@@ -69,7 +69,7 @@ class Misc(commands.Cog):
             Emoji to post
         """
         
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             if await self.ratelimit(ctx.message):
                 raise commands.BadArgument("This command is on cooldown.")
@@ -120,7 +120,7 @@ class Misc(commands.Cog):
         if member is None:
             member = ctx.author
 
-        bot_chan = self.bot.settings.guild().channel_botspam
+        bot_chan = self.bot.settings.guild().channel_offtopic
 
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             raise commands.BadArgument(
