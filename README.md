@@ -1,7 +1,7 @@
-# GIR (Botty McBotface)
+# Chromey McChromeface
 ![](https://media.discordapp.net/attachments/688121419980341282/787792406443458610/gggggggir.png)
 
-Moderation bot for r/Jailbreak
+Moderation bot for r/ChromeOS
 
 ### Prerequisites for setup
 - Python
@@ -10,7 +10,7 @@ Moderation bot for r/Jailbreak
 - MongoDB server
 
 ### Setup
-1. `pyenv install 3.9.0`
+1. `pyenv install 3.9.1`
 2. `pyenv shell`
 3. `poetry install` (use flag `--no-dev` for prod)
 4. `poetry shell`
@@ -21,12 +21,9 @@ CHROMEY_OWNER      = OWNER ID (int)
 CHROMEY_MAINGUILD  = MAIN GUILD ID (int)
 ```
 
-6. Download the latest version of the Lavalink jar file from [here](https://github.com/Frederikam/Lavalink/releases/), and put it in the root of the project
-7. Set up the `application.yml` as shown in the example [here](https://github.com/Frederikam/Lavalink/blob/master/LavalinkServer/application.yml.example/), also in the root of the project. Use the same password as in the `.env` file. You need not change anything else.
-8. Run Lavalink with `java -jar Lavalink.jar`
-9. Set up mongodb on your system (and see *First time use* to populate the database with initial data)
-10. `python main.py` - if everything was set up properly you're good to go!
+6. Set up mongodb on your system (and see *First time use* to populate the database with initial data)
+7. `python main.py` - if everything was set up properly you're good to go!
 
 ### First time use
 
-If you aren't porting from Janet, you don't have any baseline data for the bot to work. I wrote a short script `setup.py` which you should fill in with data from your own server, then run `python setup.py`
+If you don't have any baseline data for the bot to work, I wrote a short script `setup.py` which you should fill in with data from your own server, then run `python setup.py`
