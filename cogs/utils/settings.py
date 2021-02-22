@@ -226,6 +226,13 @@ class Settings(commands.Cog):
             user.save()
         return user
     
+    async def karma_rank(self, _id) -> list:
+        karma = (await self.bot.settings.user(_id)).karma
+        users = User.objects().only('_id', 'karma')
+        overall = users().count()
+        rank = users(karma__gte=karma).count()
+        return karma, rank, overall
+    
     async def transfer_profile(self, oldmember, newmember):
         u = await self.user(oldmember)
         u._id = newmember

@@ -1,8 +1,7 @@
-import asyncio
 import json
 
 import aiohttp
-import discord
+import re
 from discord import Color, Embed
 from discord.ext import commands, menus
 import traceback
@@ -28,10 +27,6 @@ class NewMenuPages(menus.MenuPages):
         await super().update(payload)
 
 
-def setup(bot):
-    bot.add_cog(Utilities(bot))
-
-
 class Devices(commands.Cog):    
     def __init__(self, bot):
         self.bot = bot
@@ -42,7 +37,7 @@ class Devices(commands.Cog):
 
         # ensure the board arg is only alphabetical chars
         if (not board.isalpha()):
-            raise commands.BadArgument()
+            raise commands.BadArgument("You need to supply a board name! Example: `$b2d coral`")
 
         # case insensitivity
         board = board.lower()
@@ -64,23 +59,15 @@ class Devices(commands.Cog):
                 return
         
         # no match, send error response
-        await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="A board with that name was not found!"))
+        raise commands.BadArgument("A board with that name was not found!")
 
-    # err handling
-    @board2device.error
-    async def b2d_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="You need to supply a board name! Example: `$b2d coral`"))
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="The board should only be alphabetical characters!"))
     
     @commands.command(name='device2board', aliases=['d2b'])
     async def device2board(self, ctx, *, search_term: str):
         """(alias $d2b) Retrieve the board name from a specified brand name as a search term\nExample usage: `$d2b acer chromebook 11`"""
 
         if search_term == "":
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="You need to supply a boardname! Example: `$d2b acer chromebook`"))
-            return
+            raise commands.BadArgument("You need to supply a boardname! Example: `$d2b acer chromebook`")
         pattern = re.compile("^[a-zA-Z0-9_()&,/ -]*$")
 
         if (not pattern.match(search_term)):
@@ -111,7 +98,7 @@ class Devices(commands.Cog):
         """(alias $updates) Get ChromeOS version data for a specified Chromebook board name\nExample usage: `$updates edgar`"""
         # ensure the board arg is only alphabetical chars
         if (not board.isalpha()):
-            raise commands.BadArgument()
+            raise commands.BadArgument("The board should only be alphabetical characters!")
 
         # case insensitivity
         board = board.lower()
@@ -156,38 +143,31 @@ class Devices(commands.Cog):
                 return
 
         # board not found, error
-        await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="Couldn't find a result with that boardname!"))
-        return
-
-    # err handling
+        raise commands.BadArgument("Couldn't find a result with that boardname!")
+            
     @updates.error
-    async def updates_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="You need to supply a board name! Example: `$updates coral`"))
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="The board should only be alphabetical characters!"))
-        else:
-            await ctx.send(embed=Embed(title="A fatal error occured!", color=Color(value=0xEB4634), description="Tell slim :("))
-            traceback.print_exc()
-
+    @board2device.error
     @device2board.error
-    async def add_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description=f'{error}'))
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description=f'{error}'))
-
+    async def info_error(self, ctx, error):
+        if (isinstance(error, commands.MissingRequiredArgument)
+            or isinstance(error, commands.BadArgument)
+            or isinstance(error, commands.BadUnionArgument)
+            or isinstance(error, commands.MissingPermissions)
+                or isinstance(error, commands.NoPrivateMessage)):
+            await self.bot.send_error(ctx, error)
+        else:
+            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            traceback.print_exc()
+            
 async def fetch(session, url, ctx):
     try:
         async with session.get(url) as response:
             if response.status == 200:
                 return await response.text()
             else:
-                await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="Error connecting to the feed! Please try again later"))
-                return None
+                raise commands.BadArgument("Error connecting to the feed! Please try again later")
     except aiohttp.ClientConnectionError:
-        await ctx.send(embed=Embed(title="An error occured!", color=Color(value=0xEB4634), description="Error connecting to the feed! Please try again later"))
-        return None
+        raise commands.BadArgument("Error connecting to the feed! Please try again later")
 
 def setup(bot):
     bot.add_cog(Devices(bot))

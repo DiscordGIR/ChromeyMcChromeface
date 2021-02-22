@@ -3,6 +3,7 @@ import traceback
 import datetime
 import asyncio
 import discord
+import typing
 import humanize
 from discord.ext import commands, menus
 
@@ -79,6 +80,29 @@ class Nerd(commands.Cog):
         embed.set_footer(text=f"Submitted by {message.author}")
         embed.timestamp = datetime.datetime.now()
         return embed, f
+
+    @commands.command(name='getkarma', aliases=["getrank"])
+    async def getkarma(self, ctx, member: typing.Union[discord.Member, int]):
+        """(alias $getrank) Get a user's karma\nWorks with ID if the user has left the guild\nExample usage: `$getkarma @member` or `$getkarma 2342492304928`"""
+
+        if not ctx.guild.id == self.bot.settings.guild_id:
+            return
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+
+        karma, rank, overall = await self.bot.settings.karma_rank(member.id)
+
+        embed = discord.Embed(
+            title=f"Karma results", color=discord.Color(value=0x37b83b))
+        embed.add_field(
+                name="Karma", value=f'{member.mention} has {karma} karma')
+        embed.add_field(
+                name="Leaderboard rank", value=f'{member.mention} is rank {rank}/{overall}')
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url)
+
+        await ctx.message.reply(embed=embed)
 
     @commands.command(name='karma')
     async def karma(self, ctx, action: str, member: discord.Member, val: int, *, reason: str = "No reason."):
@@ -220,6 +244,7 @@ class Nerd(commands.Cog):
 
 
     @history.error
+    @getkarma.error
     @modhistory.error
     @postembed.error
     async def info_error(self, ctx, error):
