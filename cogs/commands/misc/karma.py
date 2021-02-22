@@ -52,6 +52,26 @@ class Karma(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @karma.command()
+    async def set(self, ctx, member: discord.Member, val: int):
+        """Give or take karma from a user.\nYou may give or take up to 3 karma in a single command.\nOptionally, you can include a reason as an argument.\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`"""
+
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+            
+        m = await self.bot.settings.user(member.id)
+        m.karma = val
+        m.save()
+        
+        embed = discord.Embed(title=f"Updated {member}'s karma!",
+                      color=discord.Color(value=0x37b83b))
+        embed.description = ""
+        embed.description += f'**Current karma**: {m.karma}\n'
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url)
+        await ctx.send(embed=embed)
+            
+    @karma.command()
     async def give(self, ctx, member: discord.Member, val: int, *, reason: str = "No reason."):
         """Give or take karma from a user.\nYou may give or take up to 3 karma in a single command.\nOptionally, you can include a reason as an argument.\nExample usage: `$karma give @member 3 reason blah blah blah` or `$karma take <ID> 3`"""
 
