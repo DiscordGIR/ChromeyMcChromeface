@@ -43,7 +43,7 @@ class Tags(commands.Cog):
 
         Example usage:
         -------------
-        `!addtag roblox This is the content`
+        `!addtag chromeos false This is the content`
 
         Parameters
         ----------
@@ -131,7 +131,7 @@ class Tags(commands.Cog):
 
         Example usage:
         --------------
-        `!deltag <tagname>`
+        `!deltag <tag ID>`
 
         Parameters
         ----------
@@ -180,7 +180,12 @@ class Tags(commands.Cog):
 
     @commands.command(name='search')
     async def search(self, ctx, command_name:str):
-        """Search through commands for matching name by keyword\nExample usage: `!search cros`"""
+        """Search through commands for matching name by keyword
+        
+        Example usage:
+        --------------
+        `!search cros`
+        """
         
         # ensure command name doesn't have illegal chars
         pattern = re.compile("^[a-zA-Z0-9_-]*$")

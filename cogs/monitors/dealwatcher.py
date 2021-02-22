@@ -4,7 +4,6 @@ import threading
 import time
 
 import feedparser
-import discord
 from discord.ext import commands, tasks
 
 bott = None
