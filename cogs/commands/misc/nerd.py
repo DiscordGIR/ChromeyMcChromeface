@@ -71,7 +71,17 @@ class Nerd(commands.Cog):
 
     @commands.command(name='rules')
     async def rules(self, ctx, member: discord.Member):
-        """Put user on timeout to read rules\nExample usage: `$rules @SlimShadyIAm#9999`"""
+        """Put user on timeout to read rules (nerds and up)
+        
+        Example usage:
+        --------------
+        `!rules @SlimShadyIAm#9999`
+
+        Parameters
+        ----------
+        member : discord.Member
+            user to time out
+        """
         
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
@@ -83,7 +93,7 @@ class Nerd(commands.Cog):
             raise commands.BadArgument('rules role not found!')
 
         try:
-            self.bot.settings.tasks.schedule_untimeout(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
+            self.bot.settings.tasks.schedule_unrules(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
         except Exception:
             raise commands.BadArgument("This user is probably already on timeout.")
         
@@ -99,7 +109,48 @@ class Nerd(commands.Cog):
         
         await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave <@{member.id}> the rules role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
         
+    @commands.command(name='timeout')
+    async def timeout(self, ctx, member: discord.Member):
+        """Put user on timeout (nerds and up)
+        
+        Example usage:
+        --------------
+        `!timeout @SlimShadyIAm#9999`
+
+        Parameters
+        ----------
+        member : discord.Member
+            user to time out
+        """
+        
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+
+        role = ctx.guild.get_role(self.bot.settings.guild().role_timeout)
+        
+        if (role is None):
+            raise commands.BadArgument('timeout role not found!')
+
+        try:
+            self.bot.settings.tasks.schedule_untimeout(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
+        except Exception:
+            raise commands.BadArgument("This user is probably already on timeout.")
+        
+        embed = discord.Embed(title="You have been put in timeout.", color=discord.Color(value=0xebde34), description=f'{ctx.author.name} gave you the timeout role. We\'ll remove it in 15 minutes. Please read the message in the timeout channel and review the rules.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url)
+        try:
+            await member.send(embed=embed)
+        except discord.Forbidden:
+            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_botspam)
+            await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed! You\'ll be timed out in 10 seconds.', embed=embed)
+            await asyncio.sleep(10)
+        
+        await member.add_roles(role)
+        
+        await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave <@{member.id}> the timeout role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
+        
     @rules.error
+    @timeout.error
     @postembed.error
     async def info_error(self, ctx, error):
         await ctx.message.delete(delay=5)

@@ -12,6 +12,7 @@ class Guild(mongoengine.Document):
     role_birthday             = mongoengine.IntField()
     role_helpers              = mongoengine.IntField()
     role_rules                = mongoengine.IntField()
+    role_timeout              = mongoengine.IntField()
     
     channel_botspam           = mongoengine.IntField()
     channel_private           = mongoengine.IntField()

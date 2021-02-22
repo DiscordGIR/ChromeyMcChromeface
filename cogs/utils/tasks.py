@@ -61,6 +61,20 @@ class Tasks():
         self.tasks.add_job(unmute_callback, 'date', id=str(
             id), next_run_time=date, args=[id], misfire_grace_time=3600)
     
+    def schedule_unrules(self, id: int, date: datetime) -> None:
+        """Create a task to remove rules for user given by ID `id`, at time `date`
+
+        Parameters
+        ----------
+        id : int
+            User to unrules
+        date : datetime.datetime
+            When to unrules
+        """
+
+        self.tasks.add_job(unrules_callback, 'date', id=str(
+            id+3), next_run_time=date, args=[id], misfire_grace_time=3600)
+   
     def schedule_untimeout(self, id: int, date: datetime) -> None:
         """Create a task to remove timeout for user given by ID `id`, at time `date`
 
@@ -73,7 +87,7 @@ class Tasks():
         """
 
         self.tasks.add_job(untimeout_callback, 'date', id=str(
-            id+3), next_run_time=date, args=[id], misfire_grace_time=3600)
+            id+5), next_run_time=date, args=[id], misfire_grace_time=3600)
 
     def schedule_remove_bday(self, id: int, date: datetime) -> None:
         """Create a task to remove birthday role from user given by ID `id`, at time `date`
@@ -249,6 +263,48 @@ async def remove_bday(id: int) -> None:
     await user.remove_roles(bday_role)
 
 
+def unrules_callback(id: int) -> None:
+    """Callback function for actually unrules. Creates asyncio task
+    to do the actual unrules.
+
+    Parameters
+    ----------
+    id : int
+        User who we want to unrules
+    """
+
+    BOT_GLOBAL.loop.create_task(remove_rules(id))
+
+
+async def remove_rules(id: int) -> None:
+    """Remove the rules role of the user given by ID `id`
+
+    Parameters
+    ----------
+    id : int
+        User to unmute
+    """
+
+    guild = BOT_GLOBAL.get_guild(BOT_GLOBAL.settings.guild_id)
+    if guild is None:
+        return
+    
+    member = guild.get_member(id)
+    if member is None:
+        return
+
+    role = guild.get_role(BOT_GLOBAL.settings.guild().role_rules)
+    if role is None:
+        return
+
+    embed=discord.Embed(title="Timeout finished.", color=discord.Color(value=0x37b83b), description='Removed your timeout role. Please behave, or we will have to take further action.')
+    try:
+        await member.send(embed=embed)
+        await member.remove_roles(role)
+    except discord.Forbidden:
+        channel = guild.get_channel(BOT_GLOBAL.settings.guild().channel_botspam)
+        await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed!', embed=embed)
+        await member.remove_roles(role)
 
 def untimeout_callback(id: int) -> None:
     """Callback function for actually untimeout. Creates asyncio task
@@ -289,7 +345,6 @@ async def remove_timeout(id: int) -> None:
         await member.send(embed=embed)
         await member.remove_roles(role)
     except discord.Forbidden:
-        channel = guild.get_channel(BOT_GLOBAL.settings.guild().channel_botspam)
+        channel = discord.utils.get(guild.channels, name="general" if os.environ.get('PRODUCTION') == "false" else "off-topic")
         await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed!', embed=embed)
         await member.remove_roles(role)
-
