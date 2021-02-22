@@ -33,11 +33,22 @@ class Devices(commands.Cog):
     
     @commands.command(name='board2device', aliases=['b2d'])
     async def board2device(self, ctx, board: str):
-        """(alias $b2d) Retreive the brand name for a given Chromebook board name\nExample usage: `$b2d edgar`"""
+        """(alias !b2d) Retreive the brand name for a given Chromebook board name
+        
+        Example usage:
+        --------------
+        `!b2d edgar`
+
+
+        Parameters
+        ----------
+        board : str
+            Board name to convert
+        """
 
         # ensure the board arg is only alphabetical chars
         if (not board.isalpha()):
-            raise commands.BadArgument("You need to supply a board name! Example: `$b2d coral`")
+            raise commands.BadArgument("You need to supply a board name! Example: `!b2d coral`")
 
         # case insensitivity
         board = board.lower()
@@ -64,11 +75,22 @@ class Devices(commands.Cog):
     
     @commands.command(name='device2board', aliases=['d2b'])
     async def device2board(self, ctx, *, search_term: str):
-        """(alias $d2b) Retrieve the board name from a specified brand name as a search term\nExample usage: `$d2b acer chromebook 11`"""
+        """(alias !d2b) Retrieve the board name from a specified brand name as a search term
+        
+        Example usage: 
+        --------------
+        `!d2b acer chromebook 11`
 
+        Parameters
+        ----------
+        search_term : str
+            Model name to search for
+
+        """ 
+                
         if search_term == "":
-            raise commands.BadArgument("You need to supply a boardname! Example: `$d2b acer chromebook`")
-        pattern = re.compile("^[a-zA-Z0-9_()&,/ -]*$")
+            raise commands.BadArgument("You need to supply a boardname! Example: `!d2b acer chromebook`")
+        pattern = re.compile("^[a-zA-Z0-9_()&,/ -]*!")
 
         if (not pattern.match(search_term)):
             raise commands.BadArgument("Illegal characters in search term!")
@@ -95,7 +117,19 @@ class Devices(commands.Cog):
     @commands.command(name="cros-updates", aliases=['updates'])
     @commands.guild_only()
     async def updates(self, ctx, *, board:str):
-        """(alias $updates) Get ChromeOS version data for a specified Chromebook board name\nExample usage: `$updates edgar`"""
+        """(alias !updates) Get ChromeOS version data for a specified Chromebook board name
+        
+        Example usage:
+        --------------
+        `!updates edgar`
+
+
+        Parameters
+        ----------
+        board : str
+            name of board to get updates for
+        """
+        
         # ensure the board arg is only alphabetical chars
         if (not board.isalpha()):
             raise commands.BadArgument("The board should only be alphabetical characters!")
