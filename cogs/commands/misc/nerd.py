@@ -271,9 +271,10 @@ class Nerd(commands.Cog):
 
                         else:
                             member = menu.ctx.user_cache[user._id]
-
+                                                
+                    embed.add_field(name=f"Rank {i+1}", value=f"{member.display_name} with {user.karma} karma", inline=False)
                     # member_string = f'{f"({str(member)})" if member is not None else ""}'
-                    embed.description += f'**Rank {i}**: {member.mention} with {user.karma} karma\n'
+                    # embed.description += f'**Rank {i}**: *{member.display_name}* with {user.karma} karma\n'
                 # pushables = []
                 # for user in entry.items:
                 #     member  = ctx.guild.get_member(user._id)
@@ -293,8 +294,17 @@ class Nerd(commands.Cog):
         if (len(data) == 0):
            raise commands.BadArgument("No history in this guild!")
         else:
+            data_final = []
+            for u in data:
+                member = ctx.guild.get_member(u._id)    
+                if member:
+                    if not member.guild_permissions.manage_messages:
+                        data_final.append(u)
+                else:
+                    data_final.append(u)
+                    
             pages = NewMenuPages(source=Source(
-                data, key=lambda t: 1, per_page=10), clear_reactions_after=True)
+                data_final, key=lambda t: 1, per_page=10), clear_reactions_after=True)
             await pages.start(ctx)
 
     @leaderboard.error
