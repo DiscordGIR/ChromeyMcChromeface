@@ -149,7 +149,31 @@ class Nerd(commands.Cog):
         
         await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave <@{member.id}> the timeout role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
         
+    @commands.command(name="poll")
+    async def poll(self, ctx, *, content: str):
+        """Create a poll (Nerds and up)
+        
+        Example usage:
+        --------------
+        `!poll are u good?`
+
+        Parameters
+        content : str
+            Description
+        """
+    
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+
+        embed = discord.Embed(title="New poll!", description=content, color=discord.Color.blurple())
+        msg = await ctx.message.reply(embed=embed)
+        
+        await msg.add_reaction('👍')
+        await msg.add_reaction('👎')
+    
     @rules.error
+    @poll.error
     @timeout.error
     @postembed.error
     async def info_error(self, ctx, error):
