@@ -107,7 +107,15 @@ class ModActions(commands.Cog):
 
         # also send response in channel where command was called
         await ctx.message.reply(user.mention if not dmed else "", embed=log)
+        modlog_chan = ctx.guild.get_channel(
+            self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
 
+        
+        
     @commands.guild_only()
     @commands.command(name="liftwarn")
     async def liftwarn(self, ctx: commands.Context, user: discord.Member, case_id: int, *, reason: str = "No reason.") -> None:
@@ -165,6 +173,12 @@ class ModActions(commands.Cog):
             dmed = False
 
         await ctx.message.reply(user.mention if not dmed else "", embed=log)
+        modlog_chan = ctx.guild.get_channel(
+        self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
 
     @commands.guild_only()
     @commands.command(name="editreason")
@@ -213,8 +227,15 @@ class ModActions(commands.Cog):
             dmed = False
 
             
-        await ctx.message.reply(f"{user.mention if dmed is False else ''} Case has been updated.", embed=log)
-            
+        await ctx.message.reply(f"The case has been updated.", embed=log)
+        modlog_chan = ctx.guild.get_channel(
+        self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
+
+        
     @commands.guild_only()
     @commands.bot_has_guild_permissions(kick_members=True)
     @commands.command(name="kick")
@@ -247,8 +268,14 @@ class ModActions(commands.Cog):
             pass
 
         await user.kick(reason=reason)
-
         await ctx.message.reply(embed=log)
+        modlog_chan = ctx.guild.get_channel(
+        self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
+
 
     async def add_kick_case(self, ctx, user, reason):
         # prepare case for DB
@@ -313,6 +340,13 @@ class ModActions(commands.Cog):
             await ctx.guild.ban(discord.Object(id=user.id))
 
         await ctx.message.reply(embed=log)
+        modlog_chan = ctx.guild.get_channel(
+        self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
+
 
     async def add_ban_case(self, ctx, user, reason):
         # prepare the case to store in DB
@@ -378,6 +412,13 @@ class ModActions(commands.Cog):
 
         log = await logging.prepare_unban_log(ctx.author, user, case)
         await ctx.message.reply(embed=log)
+        modlog_chan = ctx.guild.get_channel(
+        self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
+
 
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_messages=True)
@@ -491,7 +532,14 @@ class ModActions(commands.Cog):
         except Exception:
             dmed = False
 
-        await ctx.message.reply(user.mention if not dmed else "", embed=log)
+        await ctx.message.reply(embed=log)
+        modlog_chan = ctx.guild.get_channel(
+        self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
+
 
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
@@ -545,7 +593,14 @@ class ModActions(commands.Cog):
         except Exception:
             dmed = False
 
-        await ctx.message.reply(user.mention if not dmed else "", embed=log)
+        await ctx.message.reply(embed=log)
+        modlog_chan = ctx.guild.get_channel(
+        self.bot.settings.guild().channel_modlogs)
+        if modlog_chan:
+            log.remove_author()
+            log.set_thumbnail(url=user.avatar_url)
+            await modlog_chan.send(embed=log)
+
 
     @unmute.error
     @mute.error

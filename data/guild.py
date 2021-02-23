@@ -15,6 +15,7 @@ class Guild(mongoengine.Document):
     role_timeout              = mongoengine.IntField()
     
     channel_offtopic          = mongoengine.IntField()
+    channel_modlogs           = mongoengine.IntField()
     channel_private           = mongoengine.IntField()
     channel_reaction_roles    = mongoengine.IntField()
     channel_reports           = mongoengine.IntField()
