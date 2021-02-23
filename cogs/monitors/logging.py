@@ -98,14 +98,8 @@ class Logging(commands.Cog):
         embed.set_thumbnail(url=before.author.avatar_url)
         embed.add_field(
             name="User", value=f'{before.author} ({before.author.mention})', inline=False)
-        before_content = before.content
-        if len(before.content) > 400:
-            before_content = before_content[0:400] + "..."
-        after_content = after.content
-        if len(after.content) > 400:
-            after_content = after_content[0:400] + "..."
-        embed.add_field(name="Old message", value=before_content, inline=False)
-        embed.add_field(name="New message", value=after_content, inline=False)
+        embed.add_field(name="Old message", value=before.content, inline=False)
+        embed.add_field(name="New message", value=after.content, inline=False)
         embed.add_field(
             name="Channel", value=before.channel.mention + f"\n\n[Link to message]({before.jump_url})", inline=False)
         embed.timestamp = datetime.now()
@@ -143,8 +137,6 @@ class Logging(commands.Cog):
         embed.add_field(
             name="Channel", value=message.channel.mention, inline=True)
         content = message.content
-        if len(message.content) > 400:
-            content = content[0:400] + "..."
         embed.add_field(name="Message", value=content + f"\n\n[Link to message]({message.jump_url})", inline=False)
         embed.set_footer(text=message.author.id)
         embed.timestamp = datetime.now()
