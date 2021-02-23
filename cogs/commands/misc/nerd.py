@@ -83,6 +83,13 @@ class Nerd(commands.Cog):
             user to time out
         """
         
+        
+        if member.id == ctx.author.id:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on yourself.")
+        if member.id == self.bot.user.id:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on me :(")
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
@@ -123,6 +130,13 @@ class Nerd(commands.Cog):
             user to time out
         """
         
+        if member.id == ctx.author.id:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on yourself.")
+        if member.id == self.bot.user.id:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on me :(")
+
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
