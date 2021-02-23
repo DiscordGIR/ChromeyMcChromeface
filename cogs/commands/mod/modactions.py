@@ -274,7 +274,7 @@ class ModActions(commands.Cog):
         except Exception:
             pass
 
-        await user.kick(reason=reason)
+        await user.kick(reason=f'{ctx.author}: {reason}')
         await ctx.message.reply(embed=log)
         modlog_chan = ctx.guild.get_channel(
         self.bot.settings.guild().channel_modlogs)
@@ -341,10 +341,10 @@ class ModActions(commands.Cog):
             pass
 
         if isinstance(user, discord.Member):
-            await user.ban(reason=reason)
+            await user.ban(reason=f'{ctx.author}: {reason}')
         else:
             # hackban for user not currently in guild
-            await ctx.guild.ban(discord.Object(id=user.id))
+            await ctx.guild.ban(discord.Object(id=user.id), reason=f'{ctx.author}: {reason}')
 
         await ctx.message.reply(embed=log)
         modlog_chan = ctx.guild.get_channel(
@@ -403,7 +403,7 @@ class ModActions(commands.Cog):
             raise commands.BadArgument(f"Couldn't find user with ID {user}")
 
         try:
-            await ctx.guild.unban(discord.Object(id=user.id), reason=reason)
+            await ctx.guild.unban(discord.Object(id=user.id), reason=f'{ctx.author}: {reason}')
         except discord.NotFound:
             raise commands.BadArgument(f"{user} is not banned.")
 
@@ -455,7 +455,7 @@ class ModActions(commands.Cog):
         msgs = await ctx.channel.history(limit=limit+1).flatten()
 
         await ctx.channel.purge(limit=limit+1)
-        await ctx.send(f'Purged {len(msgs)} messages.')
+        await ctx.send(f'Purged {len(msgs)} messages.', delete_after=5)
 
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
