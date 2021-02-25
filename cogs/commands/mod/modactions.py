@@ -63,6 +63,13 @@ class ModActions(commands.Cog):
 
         """
 
+        if user.id == ctx.author.id:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on yourself.")
+        if user.bot:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on bots :(")
+
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
@@ -477,6 +484,13 @@ class ModActions(commands.Cog):
             Reason for mute, by default "No reason."
 
         """
+        if user.id == ctx.author.id:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on yourself.")
+        if user.bot:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on bots :(")
+        
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
