@@ -30,9 +30,9 @@ class ModActions(commands.Cog):
             if user.id == ctx.author.id:
                 await ctx.message.add_reaction("🤔")
                 raise commands.BadArgument("You can't call that on yourself.")
-            if user.id == self.bot.user.id:
+            if user.bot:
                 await ctx.message.add_reaction("🤔")
-                raise commands.BadArgument("You can't call that on me :(")
+                raise commands.BadArgument("You can't call that on bots :(")
 
         # must be at least a mod
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
