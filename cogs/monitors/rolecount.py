@@ -26,7 +26,7 @@ class RoleCount(commands.Cog):
             "Acer",
             "HP",
             "Samsung",
-            "Google",
+            "MadeByGoogle",
             "Asus",
             "Lenovo",
             "Toshiba",
