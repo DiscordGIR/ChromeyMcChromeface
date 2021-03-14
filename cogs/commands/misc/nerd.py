@@ -100,7 +100,7 @@ class Nerd(commands.Cog):
             raise commands.BadArgument('rules role not found!')
 
         try:
-            self.bot.settings.tasks.schedule_unrules(member.id, datetime.datetime.now() + datetime.timedelta(minutes=0.5))
+            self.bot.settings.tasks.schedule_unrules(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
         except Exception:
             raise commands.BadArgument("This user is probably already on timeout.")
         
@@ -147,7 +147,7 @@ class Nerd(commands.Cog):
             raise commands.BadArgument('timeout role not found!')
 
         try:
-            self.bot.settings.tasks.schedule_untimeout(member.id, datetime.datetime.now() + datetime.timedelta(minutes=0.5))
+            self.bot.settings.tasks.schedule_untimeout(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
         except Exception:
             raise commands.BadArgument("This user is probably already on timeout.")
         
