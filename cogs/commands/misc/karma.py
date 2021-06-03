@@ -52,6 +52,13 @@ class Karma(commands.Cog):
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
+            
+        if isinstance(member, int):
+            try:
+                member = await self.bot.fetch_user(member)
+            except discord.NotFound:
+                raise commands.BadArgument(
+                    f"Couldn't find user with ID {member}")
 
         karma, rank, overall = await self.bot.settings.karma_rank(member.id)
 
@@ -62,7 +69,7 @@ class Karma(commands.Cog):
         embed.add_field(
                 name="Leaderboard rank", value=f'{member.mention} is rank {rank}/{overall}')
         embed.set_footer(
-            text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url)
+            text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
 
         await ctx.message.reply(embed=embed)
 
