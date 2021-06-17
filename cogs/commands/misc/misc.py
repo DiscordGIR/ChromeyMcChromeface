@@ -5,7 +5,6 @@ import traceback
 import typing
 from io import BytesIO
 
-import aiohttp
 import discord
 import humanize
 import pytimeparse
@@ -96,20 +95,6 @@ class Misc(commands.Cog):
 
         else:
             await ctx.message.reply(emoji.url, mention_author=False)
-
-    async def get_emoji_bytes(self, url):
-        async with aiohttp.ClientSession() as session:
-            async with session.head(url) as resp:
-                if resp.status != 200:
-                    return None
-                elif resp.headers["CONTENT-TYPE"] not in ["image/png", "image/jpeg", "image/gif", "image/webp"]:
-                    return None
-                else:
-                    async with session.get(url) as resp2:
-                        if resp2.status != 200:
-                            return None
-
-                        return await resp2.read()
 
     async def ratelimit(self, message):
         bucket = self.spam_cooldown.get_bucket(message)
