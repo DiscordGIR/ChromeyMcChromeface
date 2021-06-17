@@ -1,21 +1,28 @@
+import base64
 import datetime
+import json
 import traceback
 import typing
 from io import BytesIO
 
 import aiohttp
 import discord
-from discord import mentions
 import humanize
 import pytimeparse
 from discord.ext import commands
-from twemoji_parser import emoji_to_url
+from PIL import Image
 
 
 class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.spam_cooldown = commands.CooldownMapping.from_cooldown(3, 15.0, commands.BucketType.channel)
+
+        try:
+            with open('emojis.json') as f:
+                self.emojis = json.loads(f.read())
+        except IOError:
+            raise Exception("Could not find emojis.json. Make sure to run grab_emojis.py")
         
     @commands.command(name="remindme")
     @commands.guild_only()
@@ -75,14 +82,16 @@ class Misc(commands.Cog):
                 raise commands.BadArgument("This command is on cooldown.")
 
         if isinstance(emoji, str):
-            emoji_url = await emoji_to_url(emoji)
-            if emoji_url == emoji :
-                raise commands.BadArgument("Couldn't find a suitable emoji.")
-            emoji_bytes = await self.get_emoji_bytes(emoji_url)
-            if emoji_bytes is None:
-                raise commands.BadArgument("Couldn't find a suitable emoji.")
+            async with ctx.typing():
+                emoji_url_file = self.emojis.get(emoji)
+                if emoji_url_file is None:
+                    raise commands.BadArgument("Couldn't find a suitable emoji.")
 
-            _file = discord.File(BytesIO(emoji_bytes), filename="image.png")
+            im = Image.open(BytesIO(base64.b64decode(emoji_url_file)))
+            image_container = BytesIO()
+            im.save(image_container, 'png')
+            image_container.seek(0)
+            _file = discord.File(image_container, filename="image.png")
             await ctx.message.reply(file=_file, mention_author=False)
 
         else:
