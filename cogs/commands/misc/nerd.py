@@ -91,8 +91,8 @@ class Nerd(commands.Cog):
         if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
-
-        await ctx.message.reply(message)
+        await ctx.message.delete()
+        await ctx.send(message)
     @commands.command(name='rules')
     async def rules(self, ctx, member: discord.Member):
         """Put user on timeout to read rules (nerds and up)
