@@ -56,8 +56,9 @@ class Tags(commands.Cog):
             raise commands.BadArgument(
                 "You need to be a Nerd or higher to use that command.")
 
-        if not name.isalnum():
-            raise commands.BadArgument("Tag name must be alphanumeric.")
+        pattern = re.compile("^[a-zA-Z0-9_-]*$")
+        if (not pattern.match(name)):
+            raise commands.BadArgument("The command name should only be alphanumeric characters with `_` and `-`!")
         
         prev_tag = await self.bot.settings.get_tag_by_name(name.lower(), args)
         if prev_tag is not None:

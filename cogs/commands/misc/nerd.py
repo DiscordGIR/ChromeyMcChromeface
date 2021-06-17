@@ -69,6 +69,30 @@ class Nerd(commands.Cog):
         embed.timestamp = datetime.datetime.now()
         return embed, f
 
+    @commands.command(name="say")
+    @commands.guild_only()
+    @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
+    async def say(self, ctx, *, message: str):
+        """Post an embed in the current channel (nerds and up)
+
+        Example use:
+        ------------
+        !postembed This is a title (you will be prompted for a description)
+
+        Parameters
+        ----------
+        title : str
+            Title for the embed
+        
+        """
+
+        if not ctx.guild.id == self.bot.settings.guild_id:
+            return
+        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
+            raise commands.BadArgument(
+                "You do not have permission to use this command.")
+
+        await ctx.message.reply(message)
     @commands.command(name='rules')
     async def rules(self, ctx, member: discord.Member):
         """Put user on timeout to read rules (nerds and up)
@@ -187,6 +211,7 @@ class Nerd(commands.Cog):
         await msg.add_reaction('👎')
     
     @rules.error
+    @say.error
     @poll.error
     @timeout.error
     @postembed.error

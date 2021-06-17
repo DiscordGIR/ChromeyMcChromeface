@@ -326,12 +326,12 @@ class Karma(commands.Cog):
         await pages.start(ctx)
 
     @commands.command(name="leaderboard", aliases=["lb"])
-    async def leaderboard(self, ctx):
+    async def leaderboard(self, ctx, full: str = None):
         """Get karma leaderboard for the server
         """
 
         ctx.user_cache = self.user_cache
-
+        
         class Source(menus.GroupByPageSource):
             async def format_page(self, menu, entry):
                 embed = discord.Embed(
@@ -367,7 +367,10 @@ class Karma(commands.Cog):
             for u in data:
                 member = ctx.guild.get_member(u._id)    
                 if member:
-                    if not self.bot.settings.permissions.hasAtLeast(member.guild, member, 1):
+                    if full is None:
+                        if not self.bot.settings.permissions.hasAtLeast(member.guild, member, 1):
+                            data_final.append(u)
+                    else:
                         data_final.append(u)
                 else:
                     data_final.append(u)
