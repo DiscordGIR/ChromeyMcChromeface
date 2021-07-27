@@ -59,7 +59,7 @@ class Karma(commands.Cog):
                 raise commands.BadArgument(
                     f"Couldn't find user with ID {member}")
 
-        karma, rank, overall = await self.bot.settings.karma_rank(member.id)
+        karma, rank, overall = await ctx.settings.karma_rank(member.id)
 
         embed = discord.Embed(
             title=f"Karma results", color=discord.Color(value=0x37b83b))
@@ -89,7 +89,7 @@ class Karma(commands.Cog):
             "Karma value"
         """
 
-        m = await self.bot.settings.user(member.id)
+        m = await ctx.settings.user(member.id)
         m.karma = val
         m.save()
         
@@ -133,7 +133,7 @@ class Karma(commands.Cog):
             raise commands.BadArgument(
                 "You can't give yourself karma")
         
-        receiver = await self.bot.settings.user(member.id)
+        receiver = await ctx.settings.user(member.id)
         receive_action = {
             "amount": val,
             "from": ctx.author.id,
@@ -144,7 +144,7 @@ class Karma(commands.Cog):
         receiver.karma_received_history.append(receive_action)
         receiver.save()
         
-        giver = await self.bot.settings.user(ctx.author.id)
+        giver = await ctx.settings.user(ctx.author.id)
         give_action = {
             "amount": val,
             "to": member.id,
@@ -198,7 +198,7 @@ class Karma(commands.Cog):
         
         val = (-1) * val
         
-        receiver = await self.bot.settings.user(member.id)
+        receiver = await ctx.settings.user(member.id)
         receive_action = {
             "amount": val,
             "from": ctx.author.id,
@@ -209,7 +209,7 @@ class Karma(commands.Cog):
         receiver.karma_received_history.append(receive_action)
         receiver.save()
         
-        giver = await self.bot.settings.user(ctx.author.id)
+        giver = await ctx.settings.user(ctx.author.id)
         give_action = {
             "amount": val,
             "to": member.id,
@@ -231,22 +231,19 @@ class Karma(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @karma.command()
+    @permissions.nerds_and_up()
     async def history(self, ctx: context.Context, member: discord.Member):
         """History of a specific user's karma
         
         Example usage
         --------------
-        `!karma history @member`
+        !karma history @member
 
         Parameters
         ----------
         member : discord.Member
-            Member whose karma history to get
+            "Member whose karma history to get"
         """
-        
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
 
         class Source(menus.GroupByPageSource):
             async def format_page(self, menu, entry):
@@ -263,7 +260,7 @@ class Karma(commands.Cog):
                             name=f'{humanize.naturaltime(v["date"])}', value=f'{invoker_text} gave {v["amount"]} karma to {member.mention}\n**Reason**: {v["reason"]}', inline=False)
                 return embed
         
-        data = sorted((await self.bot.settings.user(member.id)).karma_received_history, key=lambda d: d['date'], reverse=True)
+        data = sorted((await ctx.settings.user(member.id)).karma_received_history, key=lambda d: d['date'], reverse=True)
         
         if (len(data) == 0):
             raise commands.BadArgument("This user had no history.")
@@ -273,6 +270,7 @@ class Karma(commands.Cog):
         await pages.start(ctx)
         
     @karma.command()
+    @permissions.nerds_and_up()
     async def modhistory(self, ctx: context.Context, member: discord.Member = None):
         """History of a karma given by a user
         
@@ -285,10 +283,6 @@ class Karma(commands.Cog):
         member : discord.Member
             Member whose karma history to get
         """
-
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
 
         class Source(menus.GroupByPageSource):
             async def format_page(self, menu, entry):
@@ -305,7 +299,7 @@ class Karma(commands.Cog):
                             name=f'{humanize.naturaltime(v["date"])}', value=f'{member.mention} gave {v["amount"]} karma to {target}\n**Reason**: {v["reason"]}', inline=False)
                 return embed
         
-        data = sorted((await self.bot.settings.user(member.id)).karma_given_history, key=lambda d: d['date'], reverse=True)
+        data = sorted((await ctx.settings.user(member.id)).karma_given_history, key=lambda d: d['date'], reverse=True)
         
         if (len(data) == 0):
             raise commands.BadArgument("This user had no history.")
@@ -347,7 +341,7 @@ class Karma(commands.Cog):
 
                 return embed
 
-        data = await self.bot.settings.leaderboard()
+        data = await ctx.settings.leaderboard()
         
         if (len(data) == 0):
            raise commands.BadArgument("No history in this guild!")
@@ -357,7 +351,7 @@ class Karma(commands.Cog):
                 member = ctx.guild.get_member(u._id)    
                 if member:
                     if full is None:
-                        if not self.bot.settings.permissions.hasAtLeast(member.guild, member, 1):
+                        if not ctx.settings.permissions.hasAtLeast(member.guild, member, 1):
                             data_final.append(u)
                     else:
                         data_final.append(u)
