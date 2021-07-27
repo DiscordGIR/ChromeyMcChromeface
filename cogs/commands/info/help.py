@@ -28,16 +28,13 @@ class Utilities(commands.Cog):
             string = ""
             for cog_name in self.bot.cogs:
                 cog = self.bot.cogs[cog_name]
-                is_admin = ctx.permissions.hasAtLeast(ctx.guild, ctx.author, 6)
-                is_mod = ctx.permissions.hasAtLeast(ctx.guild, ctx.author, 5)
-                is_genius = ctx.permissions.hasAtLeast(ctx.guild, ctx.author, 4)
-                submod = ctx.guild.get_role(ctx.settings.guild().role_sub_mod)
+                is_admin = ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3)
+                is_mod = ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2)
+                is_nerd = ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1)
                 
                 if not cog.get_commands() or (cog_name in self.mod_only and not is_mod):
                     continue
-                elif not cog.get_commands() or (cog_name in self.genius_only and not is_genius):
-                    continue
-                elif cog_name == "SubNews" and not (submod in ctx.author.roles or is_admin):
+                elif not cog.get_commands() or (cog_name in self.nerd_only and not is_nerd):
                     continue
                 
                 string += f"== {cog_name} ==\n"
@@ -86,9 +83,9 @@ class Utilities(commands.Cog):
             command = self.bot.get_command(command_arg.lower())
             if command:
                 # print(str(command.cog))
-                if command.cog.qualified_name in self.mod_only and not ctx.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
+                if command.cog.qualified_name in self.mod_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
                     raise commands.BadArgument("You don't have permission to view that command.")
-                elif command.cog.qualified_name in self.genius_only and not ctx.permissions.hasAtLeast(ctx.guild, ctx.author, 4):
+                elif command.cog.qualified_name in self.nerd_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
                     raise commands.BadArgument("You don't have permission to view that command.")
                 else:
                     await ctx.message.add_reaction("📬")
@@ -126,9 +123,9 @@ class Utilities(commands.Cog):
             raise commands.BadArgument("Command not found.")
 
     async def get_usage_embed(self,  ctx: context.Context, command):
-        if command.cog.qualified_name in self.mod_only and not ctx.permissions.hasAtLeast(ctx.guild, ctx.author, 5):
+        if command.cog.qualified_name in self.mod_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument("You don't have permission to view that command.")
-        elif command.cog.qualified_name in self.genius_only and not ctx.permissions.hasAtLeast(ctx.guild, ctx.author, 4):
+        elif command.cog.qualified_name in self.nerd_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument("You don't have permission to view that command.")
         else:
             args = ""

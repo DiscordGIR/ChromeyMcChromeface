@@ -110,7 +110,7 @@ class Stats(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="casestats")
-    @permissions.mod_and_up()
+    @permissions.mods_and_up()
     async def casestats(self, ctx: context.Context, mod: discord.Member) -> None:
         """Present statistics on cases by each mod.
         """

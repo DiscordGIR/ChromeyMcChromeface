@@ -224,7 +224,7 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(kick_members=True)
     @commands.command(name="kick")
-    async def kick(self, ctx: context.Context, user: permissions.ModsAndAbove, *, reason: str = "No reason.") -> None:
+    async def kick(self, ctx: context.Context, user: permissions.ModsAndAboveMember, *, reason: str = "No reason.") -> None:
         """Kick a user (mod only)
 
         Example usage
@@ -436,7 +436,7 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.command(name="mute")
-    async def mute(self, ctx: context.Context, user: permissions.ModsAndAbove, dur: str = "", *, reason: str = "No reason.") -> None:
+    async def mute(self, ctx: context.Context, user: permissions.ModsAndAboveMember, dur: str = "", *, reason: str = "No reason.") -> None:
         """Mute a user (nerds and up)
 
         Example usage
@@ -524,7 +524,7 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.command(name="unmute")
-    async def unmute(self, ctx: context.Context, user: permissions.ModsAndAbove, *, reason: str = "No reason.") -> None:
+    async def unmute(self, ctx: context.Context, user: permissions.ModsAndAboveMember, *, reason: str = "No reason.") -> None:
         """Unmute a user (mod only)
 
         Example usage

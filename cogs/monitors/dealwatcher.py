@@ -1,10 +1,8 @@
 import asyncio
-import os
-import threading
-import time
 
+import discord
 import feedparser
-from discord.ext import commands, tasks
+from discord.ext import commands
 
 bott = None
 
@@ -141,7 +139,7 @@ class DealWatcher(commands.Cog):
         guild_id = self.bot.settings.guild_id
         channel = self.bot.get_guild(guild_id).get_channel(self.bot.settings.guild().channel_deals)
         role = self.bot.get_guild(guild_id).get_role(self.bot.settings.guild().role_deals)
-        await (channel.send(f'{role.mention} New deal was posted!\n{post.title}\n{post.link}'))
+        await channel.send(f'{role.mention} New deal was posted!\n{post.title}\n{post.link}', allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=True))
 
 
 def setup(bot):

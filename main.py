@@ -12,7 +12,7 @@ from dotenv import find_dotenv, load_dotenv
 from fold_to_ascii import fold
 import cogs.utils.context as context
 import cogs.utils.logs as logger
-from cogs.monitors.report import Report, report
+from cogs.monitors.report import Report
 from data.case import Case
 
 logging.basicConfig(level=logging.INFO)
@@ -75,6 +75,13 @@ class Bot(commands.Bot):
                     return
                                 
         await self.process_commands(message)
+
+    async def process_commands(self, message):
+        if message.author.bot:
+            return
+        
+        ctx = await self.get_context(message, cls=context.Context)
+        await self.invoke(ctx)
 
     async def filter(self, message):
         if not message.guild:
