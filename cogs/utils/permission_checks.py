@@ -57,7 +57,7 @@ async def check_invokee(ctx, user):
 def offtopic_only_unless_mod():
     async def predicate(ctx):
         offtopic_chan = ctx.bot.settings.guild().channel_offtopic
-        if not ctx.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
+        if not ctx.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != offtopic_chan:
             raise PermissionsFailure(f"Command only allowed in <#{offtopic_chan}>.")
         
         return True
@@ -66,7 +66,7 @@ def offtopic_only_unless_mod():
 def offtopic_only_unless_nerd():
     async def predicate(ctx):
         offtopic_chan = ctx.bot.settings.guild().channel_offtopic
-        if not ctx.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1) and ctx.channel.id != bot_chan:
+        if not ctx.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1) and ctx.channel.id != offtopic_chan:
             raise PermissionsFailure(f"Command only allowed in <#{offtopic_chan}>.")
         
         return True
