@@ -272,7 +272,7 @@ class ReactionRoles(commands.Cog):
                 for r in rero_mapping[m]:
                     await message.add_reaction(r)
 
-        await ctx.send("Done!")
+        await ctx.send_success("Done!", delete_after=5)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
@@ -326,9 +326,9 @@ class ReactionRoles(commands.Cog):
             or isinstance(error, commands.MissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await ctx.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
-            await ctx.send_error(ctx, error)
+            await ctx.send_error(error)
             traceback.print_exc()
 
 

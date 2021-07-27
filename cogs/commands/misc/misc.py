@@ -101,7 +101,7 @@ class Misc(commands.Cog):
 
     @commands.guild_only()
     @permissions.offtopic_only_unless_nerd()
-    @commands.command(name="avatar")
+    @commands.command(name="avatar", aliases=['pfp'])
     async def avatar(self, ctx: context.Context, member: discord.Member = None):
         """Post large version of a given user's avatar
 
@@ -145,11 +145,11 @@ class Misc(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await ctx.send_error(ctx, error)
+            await ctx.send_error(error)
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send_error(ctx, "You can only use this command once every 24 hours.")
+            await ctx.send_error("You can only use this command once every 24 hours.")
         else:
-            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

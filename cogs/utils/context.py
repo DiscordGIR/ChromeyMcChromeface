@@ -136,3 +136,8 @@ class Context(commands.Context):
         embed.color = discord.Color.red()
         embed.description = str(error)
         await self.send(embed=embed, delete_after=8)
+        
+        try:
+            await self.message.delete(delay=5)
+        except:
+            pass

@@ -59,11 +59,11 @@ class Filters(commands.Cog):
         cur.offline_report_ping = val
         cur.save()
 
-
         if val:
-            await ctx.message.reply("You will now be pinged for reports when offline")
+            await ctx.message.delete(delay=5)
+            await ctx.send_success("You will now be pinged for reports when offline", delete_after=5)
         else:
-            await ctx.message.reply("You won't be pinged for reports when offline")
+            await ctx.send_success("You won't be pinged for reports when offline")
 
     @commands.guild_only()
     @permissions.admins_and_up()
@@ -73,7 +73,7 @@ class Filters(commands.Cog):
 
         Example usage
         -------------
-        !filteradd false 5 :kek:
+        !filter false 5 :kek:
 
         Parameters
         ----------
@@ -90,12 +90,14 @@ class Filters(commands.Cog):
         fw.notify = notify
         fw.word = phrase
 
-        await ctx.settings.add_filtered_word(fw)
+        if not await ctx.settings.add_filtered_word(fw):
+            raise commands.BadArgument("That word is already filtered!")
 
         phrase = discord.utils.escape_markdown(phrase)
         phrase = discord.utils.escape_mentions(phrase)
 
-        await ctx.message.reply(f"Added new word to filter! This filter {'will' if notify else 'will not'} ping for reports, level {bypass} can bypass it, and the phrase is {phrase}")
+        await ctx.message.delete(delay=5)
+        await ctx.send_success(f"Added new word to filter! This filter {'will' if notify else 'will not'} ping for reports, level {bypass} can bypass it, and the phrase is {phrase}", delete_after=5)
 
     @commands.guild_only()
     @permissions.mods_and_up()
@@ -139,11 +141,12 @@ class Filters(commands.Cog):
         
         if len(words) > 0:
             if await ctx.settings.mark_false_positive(words[0].word):
-                await ctx.message.reply("Marked as potential false positive, we won't perform the enhanced checks on it!")
+                await ctx.message.delete(delay=5)
+                await ctx.send_success("Marked as potential false positive, we won't perform the enhanced checks on it!", delete_after=5)
             else:
                 raise commands.BadArgument("Unexpected error occured trying to mark as false positive!")
         else:
-            await ctx.message.reply("That word is not filtered.")     
+            raise commands.BadArgument("That word is not filtered.")     
                    
     @commands.guild_only()
     @permissions.admins_and_up()
@@ -169,9 +172,10 @@ class Filters(commands.Cog):
         
         if len(words) > 0:
             await ctx.settings.remove_filtered_word(words[0].word)
-            await ctx.message.reply("Deleted!")
+            await ctx.message.delete(delay=5)
+            await ctx.send_success("Deleted!", delete_after=5)
         else:
-            await ctx.message.reply("That word is not filtered.")            
+            raise commands.BadArgument("That word is not filtered.")            
 
     @commands.guild_only()
     @permissions.admins_and_up()
@@ -191,9 +195,10 @@ class Filters(commands.Cog):
         """
 
         if await ctx.settings.add_whitelisted_guild(id):
-            await ctx.message.reply("Whitelisted.")
+            await ctx.message.delete(delay=5)
+            await ctx.send_success("Whitelisted.", delete_after=5)
         else:
-            await ctx.message.reply("That server is already whitelisted.")
+            raise commands.BadArgument("That server is already whitelisted.")
 
     @commands.guild_only()
     @permissions.admins_and_up()
@@ -212,9 +217,10 @@ class Filters(commands.Cog):
         """
 
         if await ctx.settings.add_ignored_channel(channel.id):
-            await ctx.message.reply("Ignored.")
+            await ctx.message.delete(delay=5)
+            await ctx.send_success("Ignored.", delete_after=5)
         else:
-            await ctx.message.reply("That channel is already ignored.")
+            raise commands.BadArgument("That channel is already ignored.")
 
     @commands.guild_only()
     @permissions.admins_and_up()
@@ -233,9 +239,10 @@ class Filters(commands.Cog):
         """
 
         if await ctx.settings.remove_ignored_channel(channel.id):
-            await ctx.message.reply("Unignored.")
+            await ctx.message.delete(delay=5)
+            await ctx.send_success("Unignored.")
         else:
-            await ctx.message.reply("That channel is not already ignored.")
+            raise commands.BadArgument("That channel is not already ignored.")
 
     @commands.guild_only()
     @permissions.admins_and_up()
@@ -254,9 +261,10 @@ class Filters(commands.Cog):
         """
 
         if await ctx.settings.remove_whitelisted_guild(id):
-            await ctx.message.reply("Blacklisted.")
+            await ctx.message.delete(delay=5)
+            await ctx.send_success("Blacklisted.", delete_after=5)
         else:
-            await ctx.message.reply("That server is already blacklisted.")
+            raise commands.BadArgument("That server is already blacklisted.")
 
     @whitelist.error
     @blacklist.error
@@ -273,9 +281,9 @@ class Filters(commands.Cog):
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await ctx.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
-            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

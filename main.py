@@ -125,7 +125,7 @@ class Bot(commands.Bot):
                             await self.ratelimit(message)
                             reported = True
                         if word.notify:
-                            await self.report.report(self, message, message.author, word.word)
+                            await self.report.report(message, message.author, word.word)
                             return True
         return word_found
     
@@ -154,13 +154,13 @@ class Bot(commands.Bot):
                             if id not in whitelist:
                                 await self.delete(message)
                                 await self.ratelimit(message)
-                                await self.report.report(self, message, message.author, invite, invite=invite)
+                                await self.report.report(message, message.author, invite, invite=invite)
                                 return True
 
                         except discord.errors.NotFound:
                             await self.delete(message)
                             await self.ratelimit(message)
-                            await self.report.report(self, message, message.author, invite, invite=invite)
+                            await self.report.report(message, message.author, invite, invite=invite)
                             return True
         return False
     

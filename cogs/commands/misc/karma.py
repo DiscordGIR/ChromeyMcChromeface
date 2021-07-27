@@ -166,6 +166,7 @@ class Karma(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @karma.command()
+    @permissions.nerds_and_up()
     async def take(self, ctx: context.Context, member: discord.Member, val: int, *, reason: str = "No reason."):
         """ Take up to 3 karma from a user. Optionally, you can include a reason as an argument.
         
@@ -379,9 +380,9 @@ class Karma(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await ctx.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
-            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
             
 

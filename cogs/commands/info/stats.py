@@ -134,6 +134,7 @@ class Stats(commands.Cog):
 
     @serverinfo.error
     @roleinfo.error
+    @casestats.error
     @stats.error
     @ping.error
     async def info_error(self, ctx, error):
@@ -142,9 +143,9 @@ class Stats(commands.Cog):
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await ctx.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
-            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

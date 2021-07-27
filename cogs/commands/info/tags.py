@@ -51,6 +51,8 @@ class Tags(commands.Cog):
         ----------
         name : str
             "Name of the tag"
+        args : bool
+            "Whether or not the tag supports arguments"
         content : str
             "Content of the tag"
         """
@@ -133,7 +135,7 @@ class Tags(commands.Cog):
             raise commands.BadArgument("That tag does not exist.")
 
         await ctx.settings.remove_tag(_id)
-        await ctx.message.reply("Deleted.")
+        await ctx.send_success("Deleted.", delete_after=5)
 
     @commands.guild_only()
     @commands.command(name="tag", aliases=['t'])
@@ -192,15 +194,16 @@ class Tags(commands.Cog):
     @taglist.error
     @deltag.error
     @addtag.error
+    @search.error
     async def info_error(self, ctx: context.Context, error):
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await ctx.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
-            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 
