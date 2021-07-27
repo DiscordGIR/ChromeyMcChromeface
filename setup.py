@@ -32,6 +32,7 @@ async def setup():
     guild.channel_reports        = 123  # put in the channel IDs for your server here
     guild.channel_support        = 123  # put in the channel IDs for your server here
     guild.channel_deals          = 123  # put in the channel IDs for your server here
+    guild.channel_modlogs        = 123  # put in the channel IDs for your server here
     
     guild.logging_excluded_channels = []  # put in a channel if you want (ignored in logging)
     guild.filter_excluded_channels  = []  # put in a channel if you want (ignored in filter)
