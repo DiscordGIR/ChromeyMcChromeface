@@ -1,19 +1,19 @@
 import datetime
 import logging
-import re
 import os
+import re
 import string
 
 import discord
 import humanize
 import pytimeparse
-from data.case import Case
-import cogs.utils.logs as logger
 from discord.ext import commands
 from dotenv import find_dotenv, load_dotenv
 from fold_to_ascii import fold
-
-from cogs.monitors.report import report
+import cogs.utils.context as context
+import cogs.utils.logs as logger
+from cogs.monitors.report import Report, report
+from data.case import Case
 
 logging.basicConfig(level=logging.INFO)
 
@@ -118,7 +118,7 @@ class Bot(commands.Bot):
                             await self.ratelimit(message)
                             reported = True
                         if word.notify:
-                            await report(self, message, message.author, word.word)
+                            await self.report.report(self, message, message.author, word.word)
                             return True
         return word_found
     
@@ -127,7 +127,7 @@ class Bot(commands.Bot):
         INVITE FILTER
         """
         if message.content:
-            if not self.settings.permissions.hasAtLeast(message.guild, message.author, 5):
+            if not self.settings.permissions.hasAtLeast(message.guild, message.author, 2):
                 invites = re.findall(self.invite_filter, message.content, flags=re.S)
                 if invites:
                     whitelist = self.settings.guild().filter_excluded_guilds
@@ -147,13 +147,13 @@ class Bot(commands.Bot):
                             if id not in whitelist:
                                 await self.delete(message)
                                 await self.ratelimit(message)
-                                await report(self, message, message.author, invite, invite=invite)
+                                await self.report.report(self, message, message.author, invite, invite=invite)
                                 return True
 
                         except discord.errors.NotFound:
                             await self.delete(message)
                             await self.ratelimit(message)
-                            await report(self, message, message.author, invite, invite=invite)
+                            await self.report.report(self, message, message.author, invite, invite=invite)
                             return True
         return False
     
@@ -249,6 +249,7 @@ async def send_error(ctx, error):
 if __name__ == '__main__':
     bot.owner_id = int(os.environ.get("CHROMEY_OWNER"))
     bot.send_error = send_error
+    bot.report = Report(bot)
     bot.remove_command("help")
     for extension in initial_extensions:
         bot.load_extension(extension)
