@@ -1,8 +1,10 @@
+import asyncio
+import traceback
+
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 import discord
 from discord.ext import commands
-import traceback
-import asyncio
-import re
 
 
 class ReactionRoles(commands.Cog):
@@ -10,9 +12,10 @@ class ReactionRoles(commands.Cog):
         self.bot = bot
         self.cached_messages = {}
 
-    @commands.command(name='setreactions', hidden=True)
     @commands.guild_only()
+    @permissions.admins_and_up()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
+    @commands.command(name='setreactions', hidden=True)
     async def setreactions(self, ctx: context.Context, message_id: int):
         """Prompt to add multiple reaction roles to a message (admin only)
 
@@ -26,12 +29,7 @@ class ReactionRoles(commands.Cog):
             ID of message to add reactions to
         """
 
-        if not ctx.guild.id == self.bot.settings.guild_id:
-            return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
-        channel = ctx.guild.get_channel(self.bot.settings.guild().channel_reaction_roles)
+        channel = ctx.guild.get_channel(ctx.settings.guild().channel_reaction_roles)
 
         if channel is None:
             return
@@ -105,7 +103,7 @@ class ReactionRoles(commands.Cog):
                             stack = await delete_stack(stack)
                             break
 
-        await self.bot.settings.add_rero_mapping(reaction_mapping)
+        await ctx.settings.add_rero_mapping(reaction_mapping)
         the_string = "Done! We added the following emotes:\n"
         await message.clear_reactions()
 
@@ -118,8 +116,9 @@ class ReactionRoles(commands.Cog):
 
     @commands.command(name="newreaction")
     @commands.guild_only()
+    @permissions.admins_and_up()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
-    async def newreaction(self, ctx, message_id: int):
+    async def newreaction(self, ctx: context.Context, message_id: int):
         """Add one new reaction to a given message
 
         Example usage
@@ -132,17 +131,12 @@ class ReactionRoles(commands.Cog):
             Message to add reaction to
         """
 
-        if not ctx.guild.id == self.bot.settings.guild_id:
-            return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
-        channel = ctx.guild.get_channel(self.bot.settings.guild().channel_reaction_roles)
+        channel = ctx.guild.get_channel(ctx.settings.guild().channel_reaction_roles)
 
         if channel is None:
             return
 
-        rero_mapping = await self.bot.settings.get_rero_mapping(str(message_id))
+        rero_mapping = await ctx.settings.get_rero_mapping(str(message_id))
         if rero_mapping is None:
             raise commands.BadArgument(f"Message with ID {message_id} had no reactions set in database. Use `!setreactions` first.")
 
@@ -216,7 +210,7 @@ class ReactionRoles(commands.Cog):
                             break
                 break
 
-        await self.bot.settings.append_rero_mapping(reaction_mapping)
+        await ctx.settings.append_rero_mapping(reaction_mapping)
         the_string = "Done! We added the following emotes:\n"
 
         async with ctx.channel.typing():
@@ -226,10 +220,11 @@ class ReactionRoles(commands.Cog):
 
         await ctx.send(the_string)
 
+    @commands.guild_only()
+    @permissions.admins_and_up()
     @commands.command(name="movereactions")
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
-    @commands.guild_only()
-    async def movereactions(self, ctx, before: int, after: int):
+    async def movereactions(self, ctx: context.Context, before: int, after: int):
         """Move reactions from one message to another.
 
         Example use
@@ -239,26 +234,20 @@ class ReactionRoles(commands.Cog):
         Parameters
         ----------
         before : int
-            ID of before messsage
+            "ID of before messsage"
         after : int
-            ID of after message
+            "ID of after message"
         """
-
-        if not ctx.guild.id == self.bot.settings.guild_id:
-            return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
 
         if before == after:
             raise commands.BadArgument("I can't move to the same message.")
 
-        channel = ctx.guild.get_channel(self.bot.settings.guild().channel_reaction_roles)
+        channel = ctx.guild.get_channel(ctx.settings.guild().channel_reaction_roles)
 
         if channel is None:
             return
 
-        rero_mapping = await self.bot.settings.get_rero_mapping(str(before))
+        rero_mapping = await ctx.settings.get_rero_mapping(str(before))
         if rero_mapping is None:
             raise commands.BadArgument(f"Message with ID {before} had no reactions set in database.")
 
@@ -275,8 +264,8 @@ class ReactionRoles(commands.Cog):
 
         rero_mapping = {after: rero_mapping}
 
-        await self.bot.settings.add_rero_mapping(rero_mapping)
-        await self.bot.settings.delete_rero_mapping(before)
+        await ctx.settings.add_rero_mapping(rero_mapping)
+        await ctx.settings.delete_rero_mapping(before)
 
         await after_message.clear_reactions()
 
@@ -288,24 +277,19 @@ class ReactionRoles(commands.Cog):
 
         await ctx.send(the_string)
 
-    @commands.command(name="repostreactions")
     @commands.guild_only()
-    async def repostreactions(self, ctx):
+    @permissions.admins_and_up()
+    @commands.command(name="repostreactions")
+    async def repostreactions(self, ctx: context.Context):
         """Repost all reactions to messages with reaction roles (admin only)
         """
 
-        if not ctx.guild.id == self.bot.settings.guild_id:
-            return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
-
-        channel = ctx.guild.get_channel(self.bot.settings.guild().channel_reaction_roles)
+        channel = ctx.guild.get_channel(ctx.settings.guild().channel_reaction_roles)
 
         if channel is None:
             return
 
-        rero_mapping = await self.bot.settings.all_rero_mappings()
+        rero_mapping = await ctx.settings.all_rero_mappings()
         if rero_mapping is None or rero_mapping == {}:
             raise commands.BadArgument("Nothing to do.")
 
@@ -364,7 +348,7 @@ class ReactionRoles(commands.Cog):
     @newreaction.error
     @movereactions.error
     @setreactions.error
-    async def info_error(self, ctx, error):
+    async def info_error(self, ctx: context.Context, error):
         await ctx.message.delete(delay=5)
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)

@@ -1,10 +1,11 @@
 import datetime
-import pytz
 import traceback
-import typing
-import humanize
 
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 import discord
+import humanize
+import pytz
 from discord.ext import commands
 
 
@@ -13,29 +14,27 @@ class ModUtils(commands.Cog):
         self.bot = bot
 
     @commands.guild_only()
+    @permissions.mods_and_up()
     @commands.command(name="rundown", aliases=['rd'])
     async def rundown(self, ctx: context.Context, user: discord.Member) -> None:
         """Get information about a user (join/creation date, etc.), defaults to command invoker.
 
         Example usage
         --------------
-        `!userinfo <@user/ID (optional)>`
+        !userinfo <@user/ID (optional)>
 
         Parameters
         ----------
         user : discord.Member, optional
-            User to get info about, by default the author of command, by default None
+            "User to get info about, by default the author of command, by default None"
         """
-
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
-            raise commands.BadArgument(
-                "You need to be at least a Moderator to use that command.")
 
         await ctx.message.reply(embed=await self.prepare_rundown_embed(ctx, user))
 
     @commands.guild_only()
+    @permissions.admins_and_up()
     @commands.command(name="transferprofile")
-    async def transferprofile(self, ctx, oldmember: typing.Union[int, discord.Member], newmember: discord.Member):
+    async def transferprofile(self, ctx, oldmember: permissions.ModsAndAboveExternal, newmember: discord.Member):
         """Transfer all data in the database between users (admin only)
 
         Example usage
@@ -45,24 +44,13 @@ class ModUtils(commands.Cog):
         Parameters
         ----------
         oldmember : typing.Union[int, discord.Member]
-            ID/@tag of the old user, optionally in the guild
+            "ID/@tag of the old user, optionally in the guild"
         newmember : discord.Member
-            ID/@tag of the new user, must be in the
+            "ID/@tag of the new user, must be in the"
 
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3):
-            raise commands.BadArgument(
-                "You need to be at least an Administrator to use that command.")
-
-        if isinstance(oldmember, int):
-            try:
-                oldmember = await self.bot.fetch_user(oldmember)
-            except discord.NotFound:
-                raise commands.BadArgument(
-                    f"Couldn't find user with ID {oldmember}")
-
-        u, case_count = await self.bot.settings.transfer_profile(oldmember.id, newmember.id)
+        _, case_count = await ctx.settings.transfer_profile(oldmember.id, newmember.id)
 
         embed = discord.Embed(title="Transferred profile")
         embed.description = f"We transferred {oldmember.mention}'s profile to {newmember.mention}"
@@ -77,32 +65,28 @@ class ModUtils(commands.Cog):
             pass
 
     @commands.guild_only()
+    @permissions.mods_and_up()
     @commands.command(name="birthday")
     async def birthday(self, ctx: context.Context, user: discord.Member) -> None:
         """Give user birthday role for 24 hours (mod only)
 
         Example usage
         --------------
-        `!birthday <@user/ID>`
+        !birthday <@user/ID>
 
         Parameters
         ----------
         user : discord.Member
-            User whose bithday to set
+            "User whose bithday to set"
 
         """
-
-        # must be mod
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
-            raise commands.BadArgument(
-                "You need to be at least a Moderator to use that command.")
 
         if user.id == self.bot.user.id:
             await ctx.message.add_reaction("🤔")
             raise commands.BadArgument("You can't call that on me :(")
 
         eastern = pytz.timezone('US/Eastern')
-        birthday_role = ctx.guild.get_role(self.bot.settings.guild().role_birthday)
+        birthday_role = ctx.guild.get_role(ctx.settings.guild().role_birthday)
         if birthday_role is None:
             return
         if birthday_role in user.roles:
@@ -113,9 +97,8 @@ class ModUtils(commands.Cog):
 
         try:
             time = now + datetime.timedelta(days=1-h-m)
-            self.bot.settings.tasks.schedule_remove_bday(user.id, time)
+            ctx.tasks.schedule_remove_bday(user.id, time)
         except Exception as e:
-            print(e)
             return
         await user.add_roles(birthday_role)
         await user.send(f"According to my calculations, today is your birthday! We've given you the {birthday_role} role for 24 hours.")
@@ -123,10 +106,9 @@ class ModUtils(commands.Cog):
         await ctx.message.reply(f"Gave {user.mention} the birthday role for 24 hours.", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
 
     async def prepare_rundown_embed(self, ctx, user):
-        user_info = await self.bot.settings.user(user.id)
         joined = user.joined_at.strftime("%B %d, %Y, %I:%M %p")
         created = user.created_at.strftime("%B %d, %Y, %I:%M %p")
-        rd = await self.bot.settings.rundown(user.id)
+        rd = await ctx.settings.rundown(user.id)
         rd_text = ""
         for r in rd:
             rd_text += f"**{r._type}** - {r.punishment} - {r.reason} - {humanize.naturaltime(datetime.datetime.now() - r.date)}\n"

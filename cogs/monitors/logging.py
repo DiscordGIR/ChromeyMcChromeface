@@ -1,12 +1,13 @@
-import traceback
+from collections import defaultdict
 from datetime import datetime
 from io import BytesIO
+from typing import List
 
+import cogs.utils.context as context
 import discord
 from discord.ext import commands
-from collections import defaultdict
 from fold_to_ascii import fold
-from typing import List
+
 
 class Logging(commands.Cog):
     def __init__(self, bot):
