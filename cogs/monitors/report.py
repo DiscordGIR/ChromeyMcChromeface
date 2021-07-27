@@ -31,7 +31,7 @@ class Report:
             if reaction == "TERMINATE":
                 return
 
-            if not self.bot.settings.permissions.hasAtLeast(user.guild, user, 5) or reaction not in report_reactions:
+            if not self.bot.settings.permissions.hasAtLeast(user.guild, user, 2) or reaction not in report_reactions:
                 await report_msg.remove_reaction(reaction, reactor)
         
             if reaction == '✅':
@@ -65,7 +65,7 @@ class Report:
             if reaction == "TERMINATE":
                 return            
             
-            if not self.bot.settings.permissions.hasAtLeast(user.guild, user, 5) or reaction not in report_reactions:
+            if not self.bot.settings.permissions.hasAtLeast(user.guild, user, 2) or reaction not in report_reactions:
                 await report_msg.remove_reaction(reaction, reactor)
                 
             if reaction == '✅':
