@@ -13,7 +13,7 @@ class ReactionRoles(commands.Cog):
     @commands.command(name='setreactions', hidden=True)
     @commands.guild_only()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
-    async def setreactions(self, ctx: commands.Context, message_id: int):
+    async def setreactions(self, ctx: context.Context, message_id: int):
         """Prompt to add multiple reaction roles to a message (admin only)
 
         Example usage
@@ -373,9 +373,9 @@ class ReactionRoles(commands.Cog):
             or isinstance(error, commands.MissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
             traceback.print_exc()
 
 

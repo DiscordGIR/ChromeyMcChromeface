@@ -1,10 +1,11 @@
 import json
+import traceback
 
 import aiohttp
-import re
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 from discord import Color, Embed
 from discord.ext import commands, menus
-import traceback
 
 
 class Source(menus.GroupByPageSource):
@@ -32,18 +33,18 @@ class Devices(commands.Cog):
         self.bot = bot
     
     @commands.command(name='board2device', aliases=['b2d'])
-    async def board2device(self, ctx, board: str):
+    async def board2device(self, ctx: context.Context, board: str):
         """(alias !b2d) Retreive the brand name for a given Chromebook board name
         
-        Example usage:
+        Example usage
         --------------
-        `!b2d edgar`
+        !b2d edgar
 
 
         Parameters
         ----------
         board : str
-            Board name to convert
+            "Board name to convert"
         """
 
         # case insensitivity
@@ -52,7 +53,7 @@ class Devices(commands.Cog):
         # fetch data from skylar's API
         response = ""
         async with aiohttp.ClientSession() as session:
-            response = await fetch(session, 'https://raw.githubusercontent.com/skylartaylor/cros-updates/master/src/data/cros-updates.json', ctx)
+            response = await fetch(session, 'https://raw.githubusercontent.com/skylartaylor/cros-updates/master/src/data/cros-updates.json')
             if response is None:
                 return
 
@@ -70,17 +71,17 @@ class Devices(commands.Cog):
 
     
     @commands.command(name='device2board', aliases=['d2b'])
-    async def device2board(self, ctx, *, search_term: str):
+    async def device2board(self, ctx: context.Context, *, search_term: str):
         """(alias !d2b) Retrieve the board name from a specified brand name as a search term
         
-        Example usage: 
+        Example usage 
         --------------
-        `!d2b acer chromebook 11`
+        !d2b acer chromebook 11
 
         Parameters
         ----------
         search_term : str
-            Model name to search for
+            "Model name to search for"
 
         """ 
                 
@@ -91,7 +92,7 @@ class Devices(commands.Cog):
 
         response = ""
         async with aiohttp.ClientSession() as session:
-            response = await fetch(session, 'https://raw.githubusercontent.com/skylartaylor/cros-updates/master/src/data/cros-updates.json', ctx)
+            response = await fetch(session, 'https://raw.githubusercontent.com/skylartaylor/cros-updates/master/src/data/cros-updates.json')
             if response is None:
                 return
 
@@ -106,20 +107,20 @@ class Devices(commands.Cog):
                 search_results, key=lambda t: 1, per_page=8), clear_reactions_after=True)
             await pages.start(ctx)
 
-    @commands.command(name="cros-updates", aliases=['updates'])
     @commands.guild_only()
-    async def updates(self, ctx, *, board:str):
+    @commands.command(name="cros-updates", aliases=['updates'])
+    async def updates(self, ctx: context.Context, *, board:str):
         """(alias !updates) Get ChromeOS version data for a specified Chromebook board name
         
-        Example usage:
+        Example usage
         --------------
-        `!updates edgar`
+        !updates edgar
 
 
         Parameters
         ----------
         board : str
-            name of board to get updates for
+            "name of board to get updates for"
         """
         
         # ensure the board arg is only alphabetical chars
@@ -132,7 +133,7 @@ class Devices(commands.Cog):
         # fetch data from skylar's API
         data = ""
         async with aiohttp.ClientSession() as session:
-            data = await fetch(session, 'https://raw.githubusercontent.com/skylartaylor/cros-updates/master/src/data/cros-updates.json', ctx)
+            data = await fetch(session, 'https://raw.githubusercontent.com/skylartaylor/cros-updates/master/src/data/cros-updates.json')
             if data is None:
                 return
         
@@ -174,18 +175,18 @@ class Devices(commands.Cog):
     @updates.error
     @board2device.error
     @device2board.error
-    async def info_error(self, ctx, error):
+    async def info_error(self, ctx: context.Context, error):
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
             
-async def fetch(session, url, ctx):
+async def fetch(session, url):
     try:
         async with session.get(url) as response:
             if response.status == 200:

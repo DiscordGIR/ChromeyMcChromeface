@@ -151,11 +151,11 @@ class Misc(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         elif isinstance(error, commands.CommandOnCooldown):
-            await self.bot.send_error(ctx, "You can only use this command once every 24 hours.")
+            await ctx.send_error(ctx, "You can only use this command once every 24 hours.")
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

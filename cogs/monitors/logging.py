@@ -143,7 +143,7 @@ class Logging(commands.Cog):
         await channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error):
+    async def on_command_error(self, ctx: context.Context, error):
         if isinstance(error, commands.CommandNotFound):
             return
 

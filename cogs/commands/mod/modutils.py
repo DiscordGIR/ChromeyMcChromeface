@@ -14,10 +14,10 @@ class ModUtils(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="rundown", aliases=['rd'])
-    async def rundown(self, ctx: commands.Context, user: discord.Member) -> None:
+    async def rundown(self, ctx: context.Context, user: discord.Member) -> None:
         """Get information about a user (join/creation date, etc.), defaults to command invoker.
 
-        Example usage:
+        Example usage
         --------------
         `!userinfo <@user/ID (optional)>`
 
@@ -78,10 +78,10 @@ class ModUtils(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="birthday")
-    async def birthday(self, ctx: commands.Context, user: discord.Member) -> None:
+    async def birthday(self, ctx: context.Context, user: discord.Member) -> None:
         """Give user birthday role for 24 hours (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!birthday <@user/ID>`
 
@@ -172,9 +172,9 @@ class ModUtils(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
             traceback.print_exc()
 
 

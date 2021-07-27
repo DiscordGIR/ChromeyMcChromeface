@@ -97,7 +97,7 @@ class Nerd(commands.Cog):
     async def rules(self, ctx, member: discord.Member):
         """Put user on timeout to read rules (nerds and up)
         
-        Example usage:
+        Example usage
         --------------
         `!rules @SlimShadyIAm#9999`
 
@@ -144,7 +144,7 @@ class Nerd(commands.Cog):
     async def timeout(self, ctx, member: discord.Member):
         """Put user on timeout (nerds and up)
         
-        Example usage:
+        Example usage
         --------------
         `!timeout @SlimShadyIAm#9999`
 
@@ -191,7 +191,7 @@ class Nerd(commands.Cog):
     async def poll(self, ctx, *, content: str):
         """Create a poll (Nerds and up)
         
-        Example usage:
+        Example usage
         --------------
         `!poll are u good?`
 
@@ -224,9 +224,9 @@ class Nerd(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

@@ -1,7 +1,8 @@
 import traceback
 import typing
-from math import floor
 
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 import discord
 from discord.ext import commands, menus
 
@@ -56,27 +57,27 @@ class MenuPages(menus.MenuPages):
 class UserInfo(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.user_cache = {}
 
     @commands.guild_only()
+    @permissions.offtopic_only_unless_mod()
     @commands.command(name="userinfo", aliases=["info"])
-    async def userinfo(self, ctx: commands.Context, user: typing.Union[discord.Member, int] = None) -> None:
+    async def userinfo(self, ctx: context.Context, user: typing.Union[discord.Member, int] = None) -> None:
         """Get information about a user (join/creation date, etc.), defaults to command invoker.
 
-        Example usage:
+        Example usage
         --------------
-        `!userinfo <@user/ID (optional)>`
+        !userinfo <@user/ID (optional)>
 
         Parameters
         ----------
         user : discord.Member, optional
-            User to get info about, by default the author of command, by default None
+            "User to get info about, by default the author of command, by default None"
         """
 
         if user is None:
             user = ctx.author
 
-        is_mod = self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1)
+        is_mod = ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1)
 
         if isinstance(user, int):
             if not is_mod:
@@ -91,11 +92,6 @@ class UserInfo(commands.Cog):
             raise commands.BadArgument(
                 "You do not have permission to use this command.")
 
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not is_mod and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
-
         roles = ""
 
         if isinstance(user, discord.Member):
@@ -109,7 +105,7 @@ class UserInfo(commands.Cog):
             joined = user.joined_at.strftime("%B %d, %Y, %I:%M %p") + " UTC"
         else:
             roles = "No roles."
-            joined = "User not in r/ChromeOS."
+            joined = f"User not in {ctx.guild.name}."
 
         created = user.created_at.strftime("%B %d, %Y, %I:%M %p") + " UTC"
 
@@ -129,18 +125,19 @@ class UserInfo(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @commands.guild_only()
+    @permissions.offtopic_only_unless_mod()
     @commands.command(name="cases")
-    async def cases(self, ctx, user: typing.Union[discord.Member, int] = None):
+    async def cases(self, ctx: context.Context, user: typing.Union[discord.Member, int] = None):
         """Show list of cases of a user (mod only)
 
-        Example usage:
+        Example usage
         --------------
-        `!cases <@user/ID>`
+        !cases <@user/ID>
 
         Parameters
         ----------
         user : typing.Union[discord.Member,int]
-            User we want to get cases of, doesn't have to be in guild
+            "User we want to get cases of, doesn't have to be in guild"
 
         """
 
@@ -148,17 +145,12 @@ class UserInfo(commands.Cog):
             user = ctx.author
             ctx.args[2] = user
 
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
-
         if not isinstance(user, int):
-            if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and user.id != ctx.author.id:
+            if not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and user.id != ctx.author.id:
                 raise commands.BadArgument(
                     f"You don't have permissions to check others' cases.")
         else:
-            if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
+            if not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
                 raise commands.BadArgument(
                     f"You don't have permissions to check others' cases.")
 
@@ -170,7 +162,7 @@ class UserInfo(commands.Cog):
                     f"Couldn't find user with ID {user}")
             ctx.args[2] = user
 
-        results = await self.bot.settings.cases(user.id)
+        results = await ctx.settings.cases(user.id)
         if len(results.cases) == 0:
             if isinstance(user, int):
                 raise commands.BadArgument(
@@ -193,9 +185,9 @@ class UserInfo(commands.Cog):
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

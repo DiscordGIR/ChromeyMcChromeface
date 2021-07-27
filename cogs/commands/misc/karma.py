@@ -1,8 +1,10 @@
-import traceback
-
 import datetime
-import discord
+import traceback
 import typing
+
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
+import discord
 import humanize
 from discord.ext import commands, menus
 
@@ -23,35 +25,32 @@ class Karma(commands.Cog):
         self.user_cache = {}
         
     @commands.group()
-    async def karma(self, ctx):
+    async def karma(self, ctx: context.Context):
         """
         Karma commands. Usage: !karma <subcommand> from below...
         
-        Valid subcommands:
+        Valid subcommands
         ------------------
         get, set, give, take, history, modhistory
         """
         if ctx.invoked_subcommand is None:
             raise commands.BadArgument("Invalid subcommand passed. Valid subcommands: get, set, give, take, history, modhistory")
-   
+
     @karma.command()
-    async def get(self, ctx, member: typing.Union[discord.Member, int]):
+    @permissions.nerds_and_up()
+    async def get(self, ctx: context.Context, member: typing.Union[discord.Member, int]):
         """Get a user's karma 
         
-        Example usage:
+        Example usage
         ---------------
-        `!karma get @member` or `!karma get 2342492304928`
+        !karma get @member
+        !karma get 2342492304928
 
         Parameters
         ----------
         member : typing.Union[discord.Member, int]
-            Member whose karma to get
+            "Member whose karma to get"
         """
-        
-
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
             
         if isinstance(member, int):
             try:
@@ -74,25 +73,22 @@ class Karma(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @karma.command()
-    async def set(self, ctx, member: discord.Member, val: int):
+    @permissions.mods_and_up()
+    async def set(self, ctx: context.Context, member: discord.Member, val: int):
         """Force set a user's karma (mod only)
         
-        Example Usage:
+        Example usage
         --------------
-        `!karma set @user 100`
+        !karma set @user 100
 
         Parameters
         ----------
         member : discord.Member
-            Member whose karma to set
+            "Member whose karma to set"
         val : int
-            Karma value
+            "Karma value"
         """
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
-            
         m = await self.bot.settings.user(member.id)
         m.karma = val
         m.save()
@@ -106,31 +102,28 @@ class Karma(commands.Cog):
         await ctx.message.reply(embed=embed)
             
     @karma.command()
-    async def give(self, ctx, member: discord.Member, val: int, *, reason: str = "No reason."):
+    @permissions.nerds_and_up()
+    async def give(self, ctx: context.Context, member: discord.Member, val: int, *, reason: str = "No reason."):
         """ Give up to 3 karma to a user. Optionally, you can include a reason as an argument.
         
-        Example usage:
+        Example usage
         --------------
-        `!karma give @member 3 reason blah blah blah`
+        !karma give @member 3 reason blah blah blah
 
 
         Parameters
         ----------
         member : discord.Member
-            User to give karma to 
+            "User to give karma to "
         val : int
-            Amount of karma
+            "Amount of karma"
         reason : str, optional
-            Reason, by default "No reason."
+            "Reason, by default 'No reason.'"
         """
-        
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
 
         if val < 1 or val > 3:
             raise commands.BadArgument(
-                "You can give 1-3 karma in a command!\nExample usage: `!karma give @member 3 reason blah blah blah`")
+                "You can give 1-3 karma in a command!\nExample usage `!karma give @member 3 reason blah blah blah`")
 
         if member.bot:
             raise commands.BadArgument(
@@ -173,31 +166,27 @@ class Karma(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @karma.command()
-    async def take(self, ctx, member: discord.Member, val: int, *, reason: str = "No reason."):
+    async def take(self, ctx: context.Context, member: discord.Member, val: int, *, reason: str = "No reason."):
         """ Take up to 3 karma from a user. Optionally, you can include a reason as an argument.
         
-        Example usage:
+        Example usage
         --------------
-        `!karma take @member 3 reason blah blah blah`
+        !karma take @member 3 reason blah blah blah
 
 
         Parameters
         ----------
         member : discord.Member
-            User take karma from 
+            "User take karma from "
         val : int
-            Amount of karma
+            "Amount of karma"
         reason : str, optional
-            Reason, by default "No reason."
+            "Reason, by default 'No reason."
         """
-        
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
 
         if val < 1 or val > 3:
             raise commands.BadArgument(
-                "You can give 1-3 karma in a command!\nExample usage: `!karma give @member 3 reason blah blah blah`")
+                "You can give 1-3 karma in a command!\nExample usage `!karma give @member 3 reason blah blah blah`")
 
         if member.bot:
             raise commands.BadArgument(
@@ -242,10 +231,10 @@ class Karma(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @karma.command()
-    async def history(self, ctx, member: discord.Member):
+    async def history(self, ctx: context.Context, member: discord.Member):
         """History of a specific user's karma
         
-        Example usage:
+        Example usage
         --------------
         `!karma history @member`
 
@@ -284,10 +273,10 @@ class Karma(commands.Cog):
         await pages.start(ctx)
         
     @karma.command()
-    async def modhistory(self, ctx, member: discord.Member = None):
+    async def modhistory(self, ctx: context.Context, member: discord.Member = None):
         """History of a karma given by a user
         
-        Example usage:
+        Example usage
         --------------
         `!karma modhistory @member`
 
@@ -326,7 +315,7 @@ class Karma(commands.Cog):
         await pages.start(ctx)
 
     @commands.command(name="leaderboard", aliases=["lb"])
-    async def leaderboard(self, ctx, full: str = None):
+    async def leaderboard(self, ctx: context.Context, full: str = None):
         """Get karma leaderboard for the server
         """
 
@@ -387,7 +376,7 @@ class Karma(commands.Cog):
     @leaderboard.error
     @history.error
     @modhistory.error 
-    async def info_error(self, ctx, error):
+    async def info_error(self, ctx: context.Context, error):
         await ctx.message.delete(delay=5)
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)
@@ -396,9 +385,9 @@ class Karma(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
             
 

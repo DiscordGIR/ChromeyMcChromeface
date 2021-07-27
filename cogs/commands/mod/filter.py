@@ -38,7 +38,7 @@ class Filters(commands.Cog):
     async def offlineping(self, ctx, val: bool):
         """Bot will ping for reports when offline (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!offlineping <true/false>`
 
@@ -68,7 +68,7 @@ class Filters(commands.Cog):
     async def filteradd(self, ctx, notify: bool, bypass: int, *, phrase: str) -> None:
         """Add a word to filter (admin only)
 
-        Example usage:
+        Example usage
         -------------
         `!filteradd false 5 :kek:`
 
@@ -126,7 +126,7 @@ class Filters(commands.Cog):
     async def falsepositive(self, ctx, *, word: str):
         """Disabling enhanced filter checks on a word (admin only)
 
-        Example usage:
+        Example usage
         --------------
         `!falsepositive xd`
 
@@ -159,7 +159,7 @@ class Filters(commands.Cog):
     async def filterremove(self, ctx, *, word: str):
         """Remove word from filter (admin only)
 
-        Example usage:
+        Example usage
         --------------
         `!filterremove xd xd xd`
 
@@ -190,7 +190,7 @@ class Filters(commands.Cog):
     async def whitelist(self, ctx, id: int):
         """Whitelist a guild from invite filter (admin only)
 
-        Example usage:
+        Example usage
         --------------
         `!whitelist 349243932447604736`
 
@@ -216,7 +216,7 @@ class Filters(commands.Cog):
     async def ignorechannel(self, ctx, channel: discord.TextChannel) -> None:
         """Ignore channel in filter (admin only)
 
-        Example usage:
+        Example usage
         -------------
         `!ignorechannel #xd`
 
@@ -242,7 +242,7 @@ class Filters(commands.Cog):
     async def unignorechannel(self, ctx, channel: discord.TextChannel) -> None:
         """Unignore channel in filter (admin only)
 
-        Example usage:
+        Example usage
         -------------
         `!unignorechannel #xd`
 
@@ -267,7 +267,7 @@ class Filters(commands.Cog):
     async def blacklist(self, ctx, id: int):
         """Blacklist a guild from invite filter (admin only)
 
-        Example usage:
+        Example usage
         --------------
         `!blacklist 349243932447604736`
 
@@ -303,9 +303,9 @@ class Filters(commands.Cog):
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

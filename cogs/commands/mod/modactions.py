@@ -47,10 +47,10 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(kick_members=True, ban_members=True)
     @commands.command(name="warn")
-    async def warn(self, ctx: commands.Context, user: typing.Union[discord.Member, int], *, reason: str = "No reason.") -> None:
+    async def warn(self, ctx: context.Context, user: typing.Union[discord.Member, int], *, reason: str = "No reason.") -> None:
         """Warn a user (nerds and up)
 
-        Example usage:
+        Example usage
         --------------
         `!warn <@user/ID> <reason (optional)>
 
@@ -125,10 +125,10 @@ class ModActions(commands.Cog):
         
     @commands.guild_only()
     @commands.command(name="liftwarn")
-    async def liftwarn(self, ctx: commands.Context, user: discord.Member, case_id: int, *, reason: str = "No reason.") -> None:
+    async def liftwarn(self, ctx: context.Context, user: discord.Member, case_id: int, *, reason: str = "No reason.") -> None:
         """Mark a warn as lifted. (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!liftwarn <@user/ID> <case ID> <reason (optional)>`
 
@@ -189,10 +189,10 @@ class ModActions(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="editreason")
-    async def editreason(self, ctx: commands.Context, user: typing.Union[discord.Member,int], case_id: int, *, new_reason: str) -> None:
+    async def editreason(self, ctx: context.Context, user: typing.Union[discord.Member,int], case_id: int, *, new_reason: str) -> None:
         """Edit case reason for a case (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!editreason <@user/ID> <case ID> <reason>`
 
@@ -253,10 +253,10 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(kick_members=True)
     @commands.command(name="kick")
-    async def kick(self, ctx: commands.Context, user: discord.Member, *, reason: str = "No reason.") -> None:
+    async def kick(self, ctx: context.Context, user: discord.Member, *, reason: str = "No reason.") -> None:
         """Kick a user (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!kick <@user/ID> <reason (optional)>`
 
@@ -311,10 +311,10 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(ban_members=True)
     @commands.command(name="ban")
-    async def ban(self, ctx: commands.Context, user: typing.Union[discord.Member, int], *, reason: str = "No reason."):
+    async def ban(self, ctx: context.Context, user: typing.Union[discord.Member, int], *, reason: str = "No reason."):
         """Ban a user (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!ban <@user/ID> <reason (optional)>`
 
@@ -386,10 +386,10 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(ban_members=True)
     @commands.command(name="unban")
-    async def unban(self, ctx: commands.Context, user: int, *, reason: str = "No reason.") -> None:
+    async def unban(self, ctx: context.Context, user: int, *, reason: str = "No reason.") -> None:
         """Unban a user (must use ID) (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!unban <user ID> <reason (optional)> `
 
@@ -443,10 +443,10 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_messages=True)
     @commands.command(name="purge")
-    async def purge(self, ctx: commands.Context, limit: int = 0) -> None:
+    async def purge(self, ctx: context.Context, limit: int = 0) -> None:
         """Purge messages from current channel (mod only)
 
-        Example usage:
+        Example usage
         --------------
         `!purge <number of messages>`
 
@@ -473,10 +473,10 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.command(name="mute")
-    async def mute(self, ctx: commands.Context, user: discord.Member, dur: str = "", *, reason: str = "No reason.") -> None:
+    async def mute(self, ctx: context.Context, user: discord.Member, dur: str = "", *, reason: str = "No reason.") -> None:
         """Mute a user (nerds and up)
 
-        Example usage:
+        Example usage
         --------------
         `!mute <@user/ID> <duration> <reason (optional)>`
 
@@ -571,10 +571,10 @@ class ModActions(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.command(name="unmute")
-    async def unmute(self, ctx: commands.Context, user: discord.Member, *, reason: str = "No reason.") -> None:
+    async def unmute(self, ctx: context.Context, user: discord.Member, *, reason: str = "No reason.") -> None:
         """Unmute a user (mod only)
 
-        Example usage:
+        Example usage
         --------------
        ` !unmute <@user/ID> <reason (optional)>`
 
@@ -646,9 +646,9 @@ class ModActions(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
         else:
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(ctx, error)
             traceback.print_exc()
 
 
