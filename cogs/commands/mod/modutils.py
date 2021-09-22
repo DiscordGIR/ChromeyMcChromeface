@@ -112,7 +112,7 @@ class ModUtils(commands.Cog):
         m = now.minute / 60 / 24
 
         try:
-            time = now + datetime.timedelta(days=1-h-m)
+            time = now + datetime.timedelta(days=1)
             self.bot.settings.tasks.schedule_remove_bday(user.id, time)
         except Exception as e:
             print(e)
