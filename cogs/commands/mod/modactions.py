@@ -731,7 +731,7 @@ class ModActions(commands.Cog):
             raise commands.BadArgument("Server is already unlocked or my permissions are wrong.")
 
     async def lock_unlock_channel(self,  ctx: context.Context, channel, lock=None):
-        settings = ctx.settings.guild()
+        # settings = ctx.settings.guild()
         
         default_role = ctx.guild.default_role
         # nerds = ctx.guild.get_role(settings.role_nerds)   

@@ -342,22 +342,23 @@ class AntiRaidMonitor(commands.Cog):
             channel = guild.get_channel(channel)
             if channel is None:
                 continue
-            
-            default_role = guild.default_role
-            member_plus = guild.get_role(settings.role_memberplus)   
-            
-            default_perms = channel.overwrites_for(default_role)
-            memberplus_perms = channel.overwrites_for(member_plus)
 
-            if default_perms.send_messages is None and memberplus_perms.send_messages is None:
-                default_perms.send_messages = False
-                memberplus_perms.send_messages = True
+        default_role = guild.default_role
+        # nerds = ctx.guild.get_role(settings.role_nerds)   
+        
+        default_perms = channel.overwrites_for(default_role)
+        # nerds_perms = channel.overwrites_for(nerds)
 
-                try:
-                    await channel.set_permissions(default_role, overwrite=default_perms, reason="Locked!")
-                    await channel.set_permissions(member_plus, overwrite=memberplus_perms, reason="Locked!")
-                except Exception:
-                    pass
+        if default_perms.send_messages is True:
+            default_perms.send_messages = False
+
+        
+            try:
+                await channel.set_permissions(default_role, overwrite=default_perms, reason="Locked!")
+                # await channel.set_permissions(nerds, overwrite=nerds_perms, reason="Locked!" if lock else "Unlocked!")
+                return True
+            except Exception:
+                return
 
 
 def setup(bot):
