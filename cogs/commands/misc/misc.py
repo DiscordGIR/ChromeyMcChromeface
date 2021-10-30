@@ -5,6 +5,8 @@ import traceback
 import typing
 from io import BytesIO
 
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 import discord
 import humanize
 import pytimeparse
@@ -23,9 +25,10 @@ class Misc(commands.Cog):
         except IOError:
             raise Exception("Could not find emojis.json. Make sure to run grab_emojis.py")
         
-    @commands.command(name="remindme")
     @commands.guild_only()
-    async def remindme(self, ctx, dur: str, *, reminder: str):
+    @permissions.offtopic_only_unless_mod()
+    @commands.command(name="remindme")
+    async def remindme(self, ctx: context.Context, dur: str, *, reminder: str):
         """Send yourself a reminder after a given time gap
 
         Example usage
@@ -35,15 +38,11 @@ class Misc(commands.Cog):
         Parameters
         ----------
         dur : str
-            After when to send the reminder
+            "After when to send the reminder"
         reminder : str
-            What to remind you of
+            "What to remind you of"
         """
-         
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(f"Command only allowed in <#{bot_chan}>.")
-        
+
         now = datetime.datetime.now()
         delta = pytimeparse.parse(dur)
         if delta is None:
@@ -54,7 +53,7 @@ class Misc(commands.Cog):
             raise commands.BadArgument("Time has to be in the future >:(")
         reminder = discord.utils.escape_markdown(reminder)
         
-        self.bot.settings.tasks.schedule_reminder(ctx.author.id, reminder, time)        
+        ctx.settings.tasks.schedule_reminder(ctx.author.id, reminder, time)        
         natural_time =  humanize.naturaldelta(
                     delta, minimum_unit="seconds")
         embed = discord.Embed(title="Reminder set", color=discord.Color.random(), description=f"We'll remind you in {natural_time} ")
@@ -62,7 +61,7 @@ class Misc(commands.Cog):
         
     @commands.command(name="jumbo")
     @commands.guild_only()
-    async def jumbo(self, ctx, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str]):
+    async def jumbo(self, ctx: context.Context, emoji: typing.Union[discord.Emoji, discord.PartialEmoji, str]):
         """Post large version of a given emoji
 
         Example usage
@@ -72,11 +71,11 @@ class Misc(commands.Cog):
         Parameters
         ----------
         emoji : typing.Union[discord.Emoji, discord.PartialEmoji]
-            Emoji to post
+            "Emoji to post"
         """
         
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
+        bot_chan = ctx.settings.guild().channel_offtopic
+        if not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             if await self.ratelimit(ctx.message):
                 raise commands.BadArgument("This command is on cooldown.")
 
@@ -100,25 +99,20 @@ class Misc(commands.Cog):
         bucket = self.spam_cooldown.get_bucket(message)
         return bucket.update_rate_limit()
 
-    @commands.command(name="avatar")
     @commands.guild_only()
-    async def avatar(self, ctx, member: discord.Member = None):
+    @permissions.offtopic_only_unless_nerd()
+    @commands.command(name="avatar", aliases=['pfp'])
+    async def avatar(self, ctx: context.Context, member: discord.Member = None):
         """Post large version of a given user's avatar
 
         Parameters
         ----------
         member : discord.Member, optional
-            Member to get avatar of, default to command invoker
+            "Member to get avatar of, default to command invoker"
         """
 
         if member is None:
             member = ctx.author
-
-        bot_chan = self.bot.settings.guild().channel_offtopic
-
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
 
         embed = discord.Embed(title=f"{member}'s avatar")
         embed.set_image(url=member.avatar_url)
@@ -131,18 +125,18 @@ class Misc(commands.Cog):
     async def helpers(self, ctx):
         """Tag helpers, usable in #support once every 24 hours per user"""
 
-        if ctx.channel.id != self.bot.settings.guild().channel_support:
+        if ctx.channel.id != ctx.settings.guild().channel_support:
            self.helpers.reset_cooldown(ctx)
-           raise commands.BadArgument(f'This command is only usable in <#{self.bot.settings.guild().channel_support}>!')
+           raise commands.BadArgument(f'This command is only usable in <#{ctx.settings.guild().channel_support}>!')
            
-        helper_role = ctx.guild.get_role(self.bot.settings.guild().role_helpers)
-        await ctx.message.reply(f'<@{ctx.author.id}> pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
+        helper_role = ctx.guild.get_role(ctx.settings.guild().role_helpers)
+        await ctx.message.reply(f'{ctx.author.mention} pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
 
     @helpers.error
     @jumbo.error
     @remindme.error
     @avatar.error
-    async def info_error(self, ctx, error):
+    async def info_error(self, ctx: context.Context, error):
         await ctx.message.delete(delay=5)
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)
@@ -151,11 +145,11 @@ class Misc(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(error)
         elif isinstance(error, commands.CommandOnCooldown):
-            await self.bot.send_error(ctx, "You can only use this command once every 24 hours.")
+            await ctx.send_error("You can only use this command once every 24 hours.")
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

@@ -1,12 +1,13 @@
-import traceback
+from collections import defaultdict
 from datetime import datetime
 from io import BytesIO
+from typing import List
 
+import cogs.utils.context as context
 import discord
 from discord.ext import commands
-from collections import defaultdict
 from fold_to_ascii import fold
-from typing import List
+
 
 class Logging(commands.Cog):
     def __init__(self, bot):
@@ -143,7 +144,7 @@ class Logging(commands.Cog):
         await channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error):
+    async def on_command_error(self, ctx: context.Context, error):
         if isinstance(error, commands.CommandNotFound):
             return
 

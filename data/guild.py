@@ -26,8 +26,11 @@ class Guild(mongoengine.Document):
     filter_excluded_channels  = mongoengine.ListField(default=[])
     filter_excluded_guilds    = mongoengine.ListField(default=[253908290105376768])
     filter_words              = mongoengine.EmbeddedDocumentListField(FilterWord, default=[])
+    raid_phrases              = mongoengine.EmbeddedDocumentListField(FilterWord, default=[])
     logging_excluded_channels = mongoengine.ListField(default=[])
+    locked_channels           = mongoengine.ListField(default=[])
     tags                      = mongoengine.EmbeddedDocumentListField(Tag, default=[])
+    ban_today_spam_accounts   = mongoengine.BooleanField(default=False)
 
     meta = {
         'db_alias': 'default',

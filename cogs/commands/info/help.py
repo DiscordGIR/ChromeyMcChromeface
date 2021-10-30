@@ -1,5 +1,7 @@
 import traceback
 
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 import discord
 from discord.ext import commands
 
@@ -15,8 +17,10 @@ class Utilities(commands.Cog):
     @commands.command(name="help", hidden=True)
     @commands.guild_only()
     @commands.has_permissions(add_reactions=True, embed_links=True)
-    async def help_comm(self, ctx: commands.Context, *, command_arg: str = None):
-        """Gets all cogs and commands of mine."""
+    async def help_comm(self, ctx: context.Context, *, command_arg: str = None):
+        """Gets all my cogs and commands."""
+
+        await ctx.message.delete(delay=5)
 
         if not command_arg:
             await ctx.message.add_reaction("📬")
@@ -24,8 +28,9 @@ class Utilities(commands.Cog):
             string = ""
             for cog_name in self.bot.cogs:
                 cog = self.bot.cogs[cog_name]
-                is_mod = self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2)
-                is_nerd = self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1)
+                is_admin = ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 3)
+                is_mod = ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2)
+                is_nerd = ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1)
                 
                 if not cog.get_commands() or (cog_name in self.mod_only and not is_mod):
                     continue
@@ -72,15 +77,15 @@ class Utilities(commands.Cog):
                         seen += group_size
                         
             except Exception:
-                await ctx.message.reply("I tried to DM you but couldn't. Make sure your DMs are enabled.")
+                raise commands.BadArgument("I tried to DM you but couldn't. Make sure your DMs are enabled.")
 
         else:
             command = self.bot.get_command(command_arg.lower())
             if command:
                 # print(str(command.cog))
-                if command.cog.qualified_name in self.mod_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
+                if command.cog.qualified_name in self.mod_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
                     raise commands.BadArgument("You don't have permission to view that command.")
-                elif command.cog.qualified_name in self.nerd_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+                elif command.cog.qualified_name in self.nerd_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
                     raise commands.BadArgument("You don't have permission to view that command.")
                 else:
                     await ctx.message.add_reaction("📬")
@@ -88,38 +93,39 @@ class Utilities(commands.Cog):
                     try:
                         await ctx.author.send(embed=embed)
                     except Exception:
-                        await ctx.message.reply("I tried to DM you but couldn't. Make sure your DMs are enabled.")
+                        raise commands.BadArgument("I tried to DM you but couldn't. Make sure your DMs are enabled.")
             else:
-                await ctx.message.reply("Command not found.")
+                raise commands.BadArgument("Command not found.", delete_after=5)
 
     @commands.command(name="usage", hidden=True)
     @commands.guild_only()
+    @permissions.offtopic_only_unless_mod()
     @commands.has_permissions(add_reactions=True, embed_links=True)
-    async def usage(self, ctx: commands.Context, *, command_arg: str):
+    async def usage(self, ctx: context.Context, *, command_arg: str):
         """Show usage of one command
+        
+        Example usage
+        -------------
+        !usage devices
 
         Parameters
         ----------
         command_arg : str
-            Name of command
+            "Name of command"
         """
         
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
-
+        await ctx.message.delete(delay=5)
         command = self.bot.get_command(command_arg.lower())
         if command:
             embed = await self.get_usage_embed(ctx, command)
-            await ctx.message.reply(embed=embed)
+            await ctx.send(embed=embed)
         else:
-            await ctx.message.reply("Command not found.")
+            raise commands.BadArgument("Command not found.")
 
-    async def get_usage_embed(self, ctx, command):
-        if command.cog.qualified_name in self.mod_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
+    async def get_usage_embed(self,  ctx: context.Context, command):
+        if command.cog.qualified_name in self.mod_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
             raise commands.BadArgument("You don't have permission to view that command.")
-        elif command.cog.qualified_name in self.nerd_only and not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
+        elif command.cog.qualified_name in self.nerd_only and not ctx.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
             raise commands.BadArgument("You don't have permission to view that command.")
         else:
             args = ""
@@ -132,22 +138,33 @@ class Utilities(commands.Cog):
                 embed = discord.Embed(title=f"!{command.name} {args}")
             parts = command.help.split("\n\n")
             embed.description = parts[0] + '\n\n'
-            for part in parts[1:len(parts)]:
-                embed.description += "```\n"
-                embed.description += part
-                embed.description += "\n```"
+            
+            if len(parts) > 1:
+                name, *value = parts[1].split("\n")
+                value = "\n".join(value)
+                value = value.replace("-", "")
+                embed.add_field(name=name, value=f"```{value}```", inline=False)
+                    
+            if len(parts) > 2:
+                for part in parts[2:len(parts)]:
+                    name, *value = part.split("\n")
+                    value = "\n".join(value)
+                    value = value.replace("-", "")
+                    embed.add_field(name=name, value=f"```hs{value}```", inline=False)
+
             embed.color = discord.Color.random()
             return embed
 
     @usage.error
     @help_comm.error
-    async def info_error(self, ctx, error):
+    async def info_error(self,  ctx: context.Context, error):
         if (isinstance(error, commands.MissingRequiredArgument)
+            or isinstance(error, permissions.PermissionsFailure)
             or isinstance(error, commands.BadArgument)
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
             traceback.print_exc()
 

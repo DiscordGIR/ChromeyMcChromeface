@@ -1,4 +1,5 @@
 import os
+from collections import Counter
 
 import discord
 import mongoengine
@@ -120,7 +121,12 @@ class Settings(commands.Cog):
         Cases.objects(_id=_id).update_one(push__cases=case)
 
     async def add_filtered_word(self, fw: FilterWord) -> None:
+        existing = self.guild().filter_words.filter(word=fw.word)
+        if(len(existing) > 0):
+            return False
+
         Guild.objects(_id=self.guild_id).update_one(push__filter_words=fw)
+        return True
 
     async def remove_filtered_word(self, word: str):
         return Guild.objects(_id=self.guild_id).update_one(pull__filter_words__word=FilterWord(word=word).word)
@@ -317,7 +323,45 @@ class Settings(commands.Cog):
         cases = sorted(cases, key=lambda i: i['date'])
         cases.reverse()
         return cases[0:3]
+
+    async def get_locked_channels(self):
+        return self.guild().locked_channels
+
+    async def add_locked_channels(self, channel):
+        Guild.objects(_id=self.guild_id).update_one(push__locked_channels=channel)
+
+    async def remove_locked_channels(self, channel):
+        Guild.objects(_id=self.guild_id).update_one(pull__locked_channels=channel)
+
+    async def add_raid_phrase(self, phrase: str) -> bool:
+        existing = self.guild().raid_phrases.filter(word=phrase)
+        if(len(existing) > 0):
+            return False
+        Guild.objects(_id=self.guild_id).update_one(push__raid_phrases=FilterWord(word=phrase, bypass=5, notify=True))
+        return True
     
+    async def remove_raid_phrase(self, phrase: str):
+        Guild.objects(_id=self.guild_id).update_one(pull__raid_phrases__word=FilterWord(word=phrase).word)
+
+    async def fetch_cases_by_mod(self, _id):
+        values = {}
+        cases = Cases.objects(cases__mod_id=str(_id))
+        values["total"] = 0
+        cases = list(cases.all())
+        final_cases = []
+        for case in cases:
+            for c in case.cases:
+                final_cases.append(c)
+                values["total"] += 1
+
+        def get_case_reason(reason):
+            string = reason.lower()
+            return ''.join(e for e in string if e.isalnum() or e == " ").strip()
+        case_reasons = [get_case_reason(case.reason) for case in final_cases if get_case_reason(case.reason) != "temporary mute expired"]
+        values["counts"] = sorted(Counter(case_reasons).items(), key=lambda item: item[1])
+        values["counts"].reverse()
+        return values
+
 
 class Permissions:
     """A way of calculating a user's permissions.

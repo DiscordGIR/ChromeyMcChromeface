@@ -2,12 +2,14 @@ import datetime
 import os
 import platform
 import traceback
+from asyncio import sleep
 from math import floor
 
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 import discord
 import humanize
 import psutil
-from asyncio import sleep
 from discord.ext import commands
 
 
@@ -17,25 +19,21 @@ class Stats(commands.Cog):
         self.start_time = datetime.datetime.now()
 
     @commands.guild_only()
+    @permissions.offtopic_only_unless_mod()
     @commands.command(name="roleinfo")
-    async def roleinfo(self, ctx: commands.Context, role: discord.Role) -> None:
+    async def roleinfo(self, ctx: context.Context, role: discord.Role) -> None:
         """Get number of users of a role
 
         Example usage
         -------------
-        `!roleinfo <@role/ID>`
+        !roleinfo <@role/ID>
 
         Parameters
         ----------
         role : discord.Role
-            Role to get info of
+            "Role to get info of"
 
         """
-
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
 
         embed = discord.Embed(title="Role Statistics")
         embed.description = f"{len(role.members)} members have role {role.mention}"
@@ -45,45 +43,31 @@ class Stats(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @commands.guild_only()
+    @permissions.offtopic_only_unless_mod()
     @commands.command(name="ping")
-    async def ping(self, ctx: commands.Context) -> None:
-        """Pong
+    async def ping(self, ctx: context.Context) -> None:
+        """Pong"""
 
-        Example usage:
-        `!ping`
-
-        """
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
-
-        b = datetime.datetime.utcnow()
         embed = discord.Embed(
-            title=f"Pong!", color=discord.Color.blurple())
+            title="Pong!", color=discord.Color.blurple())
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         embed.description = "Latency: testing..."
 
+        # measure time between sending a message and time it is posted
+        b = datetime.datetime.utcnow()
         m = await ctx.message.reply(embed=embed)
         ping = floor((datetime.datetime.utcnow() - b).total_seconds() * 1000)
-        await sleep(1)
-        embed.description = f"Latency: {ping} ms"
+        embed.description = ""
+        embed.add_field(name="Message Latency", value=f"`{ping}ms`")
+        embed.add_field(name="API Latency", value=f"`{floor(self.bot.latency*1000)}ms`")
         await m.edit(embed=embed)
 
+
     @commands.guild_only()
+    @permissions.offtopic_only_unless_mod()
     @commands.command(name="stats")
-    async def stats(self, ctx: commands.Context) -> None:
-        """Statistics about the bot
-
-        Example usage:
-        `!stats`
-
-        """
-
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
+    async def stats(self, ctx: context.Context) -> None:
+        """Statistics about the bot"""
 
         process = psutil.Process(os.getpid())
         diff = datetime.datetime.now() - self.start_time
@@ -101,18 +85,10 @@ class Stats(commands.Cog):
         await ctx.message.reply(embed=embed)
 
     @commands.guild_only()
+    @permissions.offtopic_only_unless_mod()
     @commands.command(name="serverinfo")
-    async def serverinfo(self, ctx: commands.Context) -> None:
-        """Displays info about the server
-
-        Example usage:
-        `!serverinfo`
-
-        """
-        bot_chan = self.bot.settings.guild().channel_offtopic
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
-            raise commands.BadArgument(
-                f"Command only allowed in <#{bot_chan}>")
+    async def serverinfo(self, ctx: context.Context) -> None:
+        """Displays info about the server"""
 
         guild = ctx.guild
 
@@ -133,8 +109,33 @@ class Stats(commands.Cog):
         embed.set_footer(text=f"Requested by {ctx.author}")
         await ctx.message.reply(embed=embed)
 
+    @commands.guild_only()
+    @commands.command(name="casestats")
+    @permissions.mods_and_up()
+    async def casestats(self, ctx: context.Context, mod: discord.Member) -> None:
+        """Present statistics on cases by each mod.
+        """
+
+        embed = discord.Embed(color=discord.Color.blurple())
+        embed.set_author(name=f"{mod}'s case statistics", icon_url=mod.avatar_url)
+        
+        
+        raids = await ctx.settings.fetch_cases_by_mod(mod.id)
+        embed.add_field(name="Total cases", value=raids.get("total"))
+        
+        string = ""
+        for reason, count in raids.get("counts")[:5]:
+            string += f"**{reason}**: {count}\n"
+        
+        if string:
+            embed.add_field(name="Top reasons", value=string, inline=False)
+        
+        await ctx.message.reply(embed=embed)
+
+
     @serverinfo.error
     @roleinfo.error
+    @casestats.error
     @stats.error
     @ping.error
     async def info_error(self, ctx, error):
@@ -143,9 +144,9 @@ class Stats(commands.Cog):
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

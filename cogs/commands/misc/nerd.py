@@ -1,19 +1,65 @@
-import traceback
-
-import datetime
 import asyncio
+import datetime
+import re
+import traceback
+from typing import Iterable, Optional, Type, TypeVar
+
+from discord.ext.commands.converter import IDConverter, TextChannelConverter, _get_from_guilds
+from discord.ext.commands.errors import ChannelNotFound
+
+import cogs.utils.context as context
+import cogs.utils.permission_checks as permissions
 import discord
 from discord.ext import commands
 
+
+CT = TypeVar('CT', bound=discord.abc.GuildChannel)
+
+
+class MyTextChannelConverter(TextChannelConverter):
+    """Converts to a :class:`~discord.TextChannel`.
+    All lookups are via the local guild. If in a DM context, then the lookup
+    is done by the global cache.
+    The lookup strategy is as follows (in order):
+    1. Lookup by ID.
+    2. Lookup by mention.
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    """
+
+    async def convert(self, ctx: context.Context, argument: str) -> discord.TextChannel:
+        return self._resolve_channel(ctx, argument, ctx.guild.text_channels, discord.TextChannel)
+
+    @staticmethod
+    def _resolve_channel(ctx: context.Context, argument: str, iterable: Iterable[CT], type: Type[CT]) -> CT:
+        bot = ctx.bot
+
+        match = IDConverter()._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
+        result = None
+        guild = ctx.guild
+
+        if match is not None:
+            channel_id = int(match.group(1))
+            if guild:
+                result = guild.get_channel(channel_id)
+            else:
+                result = _get_from_guilds(bot, 'get_channel', channel_id)
+
+        if not isinstance(result, type):
+            raise ChannelNotFound(argument)
+
+        return result
 
 class Nerd(commands.Cog):
     def __init__(self, bot):
         self.bot = bot        
        
-    @commands.command(name="postembed")
     @commands.guild_only()
+    @permissions.nerds_and_up()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
-    async def postembed(self, ctx, *, title: str):
+    @commands.command(name="postembed")
+    async def postembed(self, ctx: context.Context, *, title: str):
         """Post an embed in the current channel (nerds and up)
 
         Example use:
@@ -23,39 +69,28 @@ class Nerd(commands.Cog):
         Parameters
         ----------
         title : str
-            Title for the embed
+            "Title for the embed"
         
         """
 
-        if not ctx.guild.id == self.bot.settings.guild_id:
+        if not ctx.guild.id == ctx.settings.guild_id:
             return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
-
-        channel = ctx.channel
-        description = None
-
-        def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel
-
-        while True:
-            prompt = await ctx.message.reply(f"Please enter a description for this embed (or cancel to cancel)")
-            try:
-                desc = await self.bot.wait_for('message', check=check, timeout=120)
-            except asyncio.TimeoutError:
-                return
-            else:
-                await desc.delete()
-                await prompt.delete()
-                if desc.content.lower() == "cancel":
-                    return
-                elif desc.content is not None and desc.content != "":
-                    description = desc.content
-                    break
+        
+        # prompt user for body of embed
+        prompt = context.PromptData(
+            value_name="description",
+            description="Please enter a description for this embed.",
+            convertor=str)
+        description = await ctx.prompt(prompt)
+        
+        if description is None:
+            await ctx.message.delete(delay=5)
+            await ctx.send_warning("Cancelled embed post.", delete_after=5)
+            return
 
         embed, f = await self.prepare_issues_embed(title, description, ctx.message)
-        await channel.send(embed=embed, file=f)
+        await ctx.channel.send(embed=embed, file=f)
+        await ctx.message.delete()
 
     async def prepare_issues_embed(self, title, description, message):
         embed = discord.Embed(title=title)
@@ -69,10 +104,11 @@ class Nerd(commands.Cog):
         embed.timestamp = datetime.datetime.now()
         return embed, f
 
-    @commands.command(name="say")
     @commands.guild_only()
+    @permissions.mods_and_up()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
-    async def say(self, ctx, *, message: str):
+    @commands.command(name="say")
+    async def say(self, ctx: context.Context, channel: Optional[MyTextChannelConverter] = None, *, message: str):
         """Post an embed in the current channel (nerds and up)
 
         Example use:
@@ -82,49 +118,47 @@ class Nerd(commands.Cog):
         Parameters
         ----------
         title : str
-            Title for the embed
+            "Title for the embed"
         
         """
 
-        if not ctx.guild.id == self.bot.settings.guild_id:
-            return
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 2):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
+        if channel is not None:
+            await channel.send(message)
+        else:
+            await ctx.send(message)
+
         await ctx.message.delete()
-        await ctx.send(message)
+
+
+    @permissions.nerds_and_up()
     @commands.command(name='rules')
-    async def rules(self, ctx, member: discord.Member):
+    async def rules(self, ctx: context.Context, member: discord.Member):
         """Put user on timeout to read rules (nerds and up)
         
-        Example usage:
+        Example usage
         --------------
-        `!rules @SlimShadyIAm#9999`
+        !rules @SlimShadyIAm#9999
 
         Parameters
         ----------
         member : discord.Member
-            user to time out
+            "user to time out"
         """
-        
-        
+
         if member.id == ctx.author.id:
             await ctx.message.add_reaction("🤔")
             raise commands.BadArgument("You can't call that on yourself.")
         if member.id == self.bot.user.id:
             await ctx.message.add_reaction("🤔")
             raise commands.BadArgument("You can't call that on me :(")
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
 
-        role = ctx.guild.get_role(self.bot.settings.guild().role_rules)
+        role = ctx.guild.get_role(ctx.settings.guild().role_rules)
         
         if (role is None):
             raise commands.BadArgument('rules role not found!')
 
         try:
-            self.bot.settings.tasks.schedule_unrules(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
+            ctx.tasks.schedule_unrules(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
         except Exception:
             raise commands.BadArgument("This user is probably already on timeout.")
         
@@ -132,26 +166,27 @@ class Nerd(commands.Cog):
         try:
             await member.send(embed=embed)
         except discord.Forbidden:
-            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_offtopic)
+            channel = ctx.guild.get_channel(ctx.settings.guild().channel_offtopic)
             await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed! You\'ll be timed out in 10 seconds.', embed=embed)
             await asyncio.sleep(10)
         
         await member.add_roles(role)
         
-        await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave <@{member.id}> the rules role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
-        
+        await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave {member.mention} the rules role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
+
+    @permissions.nerds_and_up()
     @commands.command(name='timeout')
-    async def timeout(self, ctx, member: discord.Member):
+    async def timeout(self, ctx: context.Context, member: discord.Member):
         """Put user on timeout (nerds and up)
         
-        Example usage:
+        Example usage
         --------------
-        `!timeout @SlimShadyIAm#9999`
+        !timeout @SlimShadyIAm#9999
 
         Parameters
         ----------
         member : discord.Member
-            user to time out
+            "user to time out"
         """
         
         if member.id == ctx.author.id:
@@ -161,17 +196,13 @@ class Nerd(commands.Cog):
             await ctx.message.add_reaction("🤔")
             raise commands.BadArgument("You can't call that on me :(")
 
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
-
-        role = ctx.guild.get_role(self.bot.settings.guild().role_timeout)
+        role = ctx.guild.get_role(ctx.settings.guild().role_timeout)
         
         if (role is None):
             raise commands.BadArgument('timeout role not found!')
 
         try:
-            self.bot.settings.tasks.schedule_untimeout(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
+            ctx.settings.tasks.schedule_untimeout(member.id, datetime.datetime.now() + datetime.timedelta(minutes=15))
         except Exception:
             raise commands.BadArgument("This user is probably already on timeout.")
         
@@ -179,30 +210,28 @@ class Nerd(commands.Cog):
         try:
             await member.send(embed=embed)
         except discord.Forbidden:
-            channel = ctx.guild.get_channel(self.bot.settings.guild().channel_offtopic)
+            channel = ctx.guild.get_channel(ctx.settings.guild().channel_offtopic)
             await channel.send(f'{member.mention} I tried to DM this to you, but your DMs are closed! You\'ll be timed out in 10 seconds.', embed=embed)
             await asyncio.sleep(10)
         
         await member.add_roles(role)
         
-        await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave <@{member.id}> the timeout role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
+        await ctx.message.reply(embed=discord.Embed(title="Done!", color=discord.Color(value=0x37b83b), description=f'Gave {member.mention} the timeout role. We\'ll let them know and remove it in 15 minutes.').set_footer(text=f'Requested by {ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.avatar_url))
         
+    @permissions.nerds_and_up()
     @commands.command(name="poll")
-    async def poll(self, ctx, *, content: str):
+    async def poll(self, ctx: context.Context, *, content: str):
         """Create a poll (Nerds and up)
         
-        Example usage:
+        Example usage
         --------------
-        `!poll are u good?`
+        !poll are u good?
 
         Parameters
+        ----------
         content : str
-            Description
+            "Description"
         """
-    
-        if not self.bot.settings.permissions.hasAtLeast(ctx.guild, ctx.author, 1):
-            raise commands.BadArgument(
-                "You do not have permission to use this command.")
 
         embed = discord.Embed(title="New poll!", description=content, color=discord.Color.blurple())
         msg = await ctx.message.reply(embed=embed)
@@ -215,7 +244,7 @@ class Nerd(commands.Cog):
     @poll.error
     @timeout.error
     @postembed.error
-    async def info_error(self, ctx, error):
+    async def info_error(self, ctx: context.Context, error):
         await ctx.message.delete(delay=5)
         if (isinstance(error, commands.MissingRequiredArgument)
             or isinstance(error, commands.BadArgument)
@@ -224,9 +253,9 @@ class Nerd(commands.Cog):
             or isinstance(error, commands.BotMissingPermissions)
             or isinstance(error, commands.MaxConcurrencyReached)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
-            await self.bot.send_error(ctx, "A fatal error occured. Tell <@109705860275539968> about this.")
+            await ctx.send_error("A fatal error occured. Tell <@109705860275539968> about this.")
             traceback.print_exc()
 
 

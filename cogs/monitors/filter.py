@@ -61,7 +61,7 @@ class FilterMonitor(commands.Cog):
             or isinstance(error, commands.BadUnionArgument)
             or isinstance(error, commands.MissingPermissions)
                 or isinstance(error, commands.NoPrivateMessage)):
-            await self.bot.send_error(ctx, error)
+            await ctx.send_error(error)
         else:
             traceback.print_exc()
 
