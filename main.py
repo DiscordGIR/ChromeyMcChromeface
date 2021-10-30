@@ -30,6 +30,7 @@ def get_prefix(bot, message):
 
 
 initial_extensions = [
+                    'cogs.commands.mod.antiraid',
                     'cogs.commands.mod.modactions',
                     'cogs.commands.mod.modutils',
                     'cogs.commands.misc.admin',
@@ -42,6 +43,7 @@ initial_extensions = [
                     'cogs.commands.info.tags',
                     'cogs.commands.info.userinfo',
                     'cogs.commands.mod.filter',
+                    'cogs.monitors.antiraid',
                     'cogs.monitors.crosblog',
                     'cogs.monitors.dealwatcher',
                     'cogs.monitors.filter',

@@ -57,8 +57,9 @@ class Stats(commands.Cog):
         b = datetime.datetime.utcnow()
         m = await ctx.message.reply(embed=embed)
         ping = floor((datetime.datetime.utcnow() - b).total_seconds() * 1000)
-        await sleep(1)
-        embed.description = f"Latency: `{ping}ms`"
+        embed.description = ""
+        embed.add_field(name="Message Latency", value=f"`{ping}ms`")
+        embed.add_field(name="API Latency", value=f"`{floor(self.bot.latency*1000)}ms`")
         await m.edit(embed=embed)
 
 
