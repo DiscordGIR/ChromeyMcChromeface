@@ -38,7 +38,7 @@ class Tags(commands.Cog):
     @commands.guild_only()
     @commands.command(name="addtag", aliases=['addt'])
     async def addtag(self, ctx, name: str, args: bool, *, content: str) -> None:
-        """Add a tag. Optionally attach an iamge. (Nerds and up)
+        """Add a tag. Optionally attach an image. (Nerds and up)
 
         Example usage:
         -------------
