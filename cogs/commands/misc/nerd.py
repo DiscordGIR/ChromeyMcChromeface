@@ -1,12 +1,55 @@
 import asyncio
 import datetime
+import re
 import traceback
+from typing import Iterable, Optional, Type, TypeVar
+
+from discord.ext.commands.converter import IDConverter, TextChannelConverter, _get_from_guilds
+from discord.ext.commands.errors import ChannelNotFound
 
 import cogs.utils.context as context
 import cogs.utils.permission_checks as permissions
 import discord
 from discord.ext import commands
 
+
+CT = TypeVar('CT', bound=discord.abc.GuildChannel)
+
+
+class MyTextChannelConverter(TextChannelConverter):
+    """Converts to a :class:`~discord.TextChannel`.
+    All lookups are via the local guild. If in a DM context, then the lookup
+    is done by the global cache.
+    The lookup strategy is as follows (in order):
+    1. Lookup by ID.
+    2. Lookup by mention.
+
+    .. versionchanged:: 1.5
+         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
+    """
+
+    async def convert(self, ctx: context.Context, argument: str) -> discord.TextChannel:
+        return self._resolve_channel(ctx, argument, ctx.guild.text_channels, discord.TextChannel)
+
+    @staticmethod
+    def _resolve_channel(ctx: context.Context, argument: str, iterable: Iterable[CT], type: Type[CT]) -> CT:
+        bot = ctx.bot
+
+        match = IDConverter()._get_id_match(argument) or re.match(r'<#([0-9]{15,20})>$', argument)
+        result = None
+        guild = ctx.guild
+
+        if match is not None:
+            channel_id = int(match.group(1))
+            if guild:
+                result = guild.get_channel(channel_id)
+            else:
+                result = _get_from_guilds(bot, 'get_channel', channel_id)
+
+        if not isinstance(result, type):
+            raise ChannelNotFound(argument)
+
+        return result
 
 class Nerd(commands.Cog):
     def __init__(self, bot):
@@ -65,7 +108,7 @@ class Nerd(commands.Cog):
     @permissions.mods_and_up()
     @commands.max_concurrency(1, per=commands.BucketType.member, wait=False)
     @commands.command(name="say")
-    async def say(self, ctx: context.Context, *, message: str):
+    async def say(self, ctx: context.Context, channel: Optional[MyTextChannelConverter] = None, *, message: str):
         """Post an embed in the current channel (nerds and up)
 
         Example use:
@@ -79,8 +122,13 @@ class Nerd(commands.Cog):
         
         """
 
+        if channel is not None:
+            await channel.send(message)
+        else:
+            await ctx.send(message)
+
         await ctx.message.delete()
-        await ctx.send(message)
+
 
     @permissions.nerds_and_up()
     @commands.command(name='rules')
