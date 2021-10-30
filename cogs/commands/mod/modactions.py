@@ -579,6 +579,188 @@ class ModActions(commands.Cog):
             log.set_thumbnail(url=user.avatar_url)
             await modlog_chan.send(embed=log)
 
+    # 
+    @commands.guild_only()
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @commands.command(name="lock")
+    @permissions.mods_and_up()
+    async def lock(self,  ctx: context.Context, channel: discord.TextChannel = None):
+        """Lock a channel (admin only)
+
+        Example usage
+        --------------
+        !lock
+        !lock #channel
+            
+        Parameters
+        ----------
+        channel : discord.TextChannel, optional
+            "Channel to lock"
+        """
+
+        if channel is None:
+            channel = ctx.channel
+            
+        if await self.lock_unlock_channel(ctx, channel, True) is not None:
+            await ctx.send_success(f"Locked {channel.mention}!", delete_after=5)
+            await ctx.message.delete(delay=5)
+        else:
+            raise commands.BadArgument(f"{channel.mention} already locked or my permissions are wrong.")
+
+    @commands.guild_only()
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @permissions.mods_and_up()
+    @commands.command(name="unlock")
+    async def unlock(self,  ctx: context.Context, channel: discord.TextChannel = None):
+        """Unlock a channel (admin only)
+
+        Example usage
+        --------------
+        !unlock 
+        !unlock #channel
+            
+        Parameters
+        ----------
+        channel : discord.TextChannel, optional
+            "Channel to unlock"
+        """
+
+        if channel is None:
+            channel = ctx.channel
+            
+        if await self.lock_unlock_channel(ctx, channel) is not None:
+            await ctx.send_success(f"Unocked {channel.mention}!", delete_after=5)
+            await ctx.message.delete(delay=5)
+        else:
+            raise commands.BadArgument(f"{channel.mention} already unlocked or my permissions are wrong.")
+
+    @commands.guild_only()
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @permissions.mods_and_up()
+    @commands.command(name="freezeable")
+    @commands.max_concurrency(1, per=commands.BucketType.guild)
+    async def freezeable(self,  ctx: context.Context, channel: discord.TextChannel=None):
+        """Mark a channel as automatically freezable during a raid (admin only)
+
+        Parameters
+        ----------
+        channel : discord.TextChannel, optional
+            "Channel to mark, current channel by default"
+        """
+
+        channel = channel or ctx.channel
+        if channel.id in await ctx.settings.get_locked_channels():
+            raise commands.BadArgument("That channel is already lockable.")
+        
+        await ctx.settings.add_locked_channels(channel.id)
+        await ctx.send_success(f"Added {channel.mention} as lockable channel!")
+
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @commands.command(name="unfreezeable")
+    @permissions.mods_and_up()
+    @commands.max_concurrency(1, per=commands.BucketType.guild)
+    async def unfreezeable(self,  ctx: context.Context, channel: discord.TextChannel=None):
+        channel = channel or ctx.channel
+        if channel.id not in await ctx.settings.get_locked_channels():
+            raise commands.BadArgument("That channel isn't already lockable.")
+        
+        await ctx.settings.remove_locked_channels(channel.id)
+        await ctx.send_success(f"Removed {channel.mention} as lockable channel!")
+            
+    @commands.guild_only()
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @permissions.mods_and_up()
+    @commands.command(name="freeze")
+    @commands.max_concurrency(1, per=commands.BucketType.guild)
+    async def freeze(self, ctx):
+        """Freeze all channels (admin only)
+
+        Example usage
+        --------------
+        !freeze
+        """
+        
+        channels = await ctx.settings.get_locked_channels()
+        if not channels:
+            raise commands.BadArgument("No freezeable channels! Set some using `!freezeable`.")
+        
+        locked = []
+        with ctx.typing():
+            for channel in channels:
+                channel = ctx.guild.get_channel(channel)
+                if channel is not None:
+                    if await self.lock_unlock_channel(ctx, channel, lock=True):
+                        locked.append(channel)
+        
+        if locked:              
+            await ctx.send_success(f"Locked {len(locked)} channels!", delete_after=5)
+            await ctx.message.delete(delay=5)
+        else:
+            raise commands.BadArgument("Server is already locked or my permissions are wrong.")
+        
+    
+    @commands.guild_only()
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @permissions.mods_and_up()
+    @commands.command(name="unfreeze")
+    @commands.max_concurrency(1, per=commands.BucketType.guild)
+    async def unfreeze(self, ctx):
+        """Unreeze all channels (admin only)
+
+        Example usage
+        --------------
+        !unfreeze
+        """
+
+        channels = await ctx.settings.get_locked_channels()
+        if not channels:
+            raise commands.BadArgument("No unfreezeable channels! Set some using `!freezeable`.")
+        
+        unlocked = []
+        with ctx.typing():
+            for channel in channels:
+                channel = ctx.guild.get_channel(channel)
+                if channel is not None:
+                    if await self.lock_unlock_channel(ctx, channel, lock=None):
+                        unlocked.append(channel)
+        
+        if unlocked:              
+            await ctx.send_success(f"Unlocked {len(unlocked)} channels!", delete_after=5)
+            await ctx.message.delete(delay=5)
+        else:
+            raise commands.BadArgument("Server is already unlocked or my permissions are wrong.")
+
+    async def lock_unlock_channel(self,  ctx: context.Context, channel, lock=None):
+        settings = ctx.settings.guild()
+        
+        default_role = ctx.guild.default_role
+        # nerds = ctx.guild.get_role(settings.role_nerds)   
+        
+        default_perms = channel.overwrites_for(default_role)
+        # nerds_perms = channel.overwrites_for(nerds)
+
+        if lock and default_perms.send_messages is True:
+            default_perms.send_messages = False
+            # nerds_perms.send_messages = True
+        elif lock is None and (not default_perms.send_messages):
+            default_perms.send_messages = True
+            # nerds_perms.send_messages = None
+        else:
+            return
+        
+        try:
+            await channel.set_permissions(default_role, overwrite=default_perms, reason="Locked!" if lock else "Unlocked!")
+            # await channel.set_permissions(nerds, overwrite=nerds_perms, reason="Locked!" if lock else "Unlocked!")
+            return True
+        except Exception:
+            return
+
+    @lock.error
+    @unlock.error
+    @freezeable.error
+    @unfreezeable.error
+    @freeze.error
+    @unfreeze.error
     @unmute.error
     @mute.error
     @liftwarn.error
