@@ -26,7 +26,7 @@ class AntiRaidMonitor(commands.Cog):
         # cooldown to monitor if too many users join in a short period of time (more than 10 within 8 seconds)
         self.join_raid_detection_threshold = commands.CooldownMapping.from_cooldown(rate=10, per=8, type=commands.BucketType.guild)
         # cooldown to monitor if users are spamming a message (8 within 5 seconds)
-        self.message_spam_detection_threshold = commands.CooldownMapping.from_cooldown(rate=7, per=5.0, type=commands.BucketType.member)
+        self.message_spam_detection_threshold = commands.CooldownMapping.from_cooldown(rate=7, per=10.0, type=commands.BucketType.member)
         # cooldown to monitor if too many accounts created on the same date are joining within a short period of time 
         # (5 accounts created on the same date joining within 45 minutes of each other)
         self.join_overtime_raid_detection_threshold = commands.CooldownMapping.from_cooldown(rate=4, per=2700, type=MessageTextBucket.custom)
@@ -156,7 +156,7 @@ class AntiRaidMonitor(commands.Cog):
             return
         if message.guild.id != self.bot.settings.guild_id:
             return
-        if self.bot.settings.permissions.hasAtLeast(message.guild, message.author, 5):
+        if self.bot.settings.permissions.hasAtLeast(message.guild, message.author, 1):
             return
         
         if await self.ping_spam(message):  
