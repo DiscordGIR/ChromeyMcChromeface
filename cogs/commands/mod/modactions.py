@@ -585,7 +585,7 @@ class ModActions(commands.Cog):
     @commands.command(name="lock")
     @permissions.mods_and_up()
     async def lock(self,  ctx: context.Context, channel: discord.TextChannel = None):
-        """Lock a channel (admin only)
+        """Lock a channel (mod only)
 
         Example usage
         --------------
@@ -612,7 +612,7 @@ class ModActions(commands.Cog):
     @permissions.mods_and_up()
     @commands.command(name="unlock")
     async def unlock(self,  ctx: context.Context, channel: discord.TextChannel = None):
-        """Unlock a channel (admin only)
+        """Unlock a channel (mod only)
 
         Example usage
         --------------
@@ -640,7 +640,7 @@ class ModActions(commands.Cog):
     @commands.command(name="freezeable")
     @commands.max_concurrency(1, per=commands.BucketType.guild)
     async def freezeable(self,  ctx: context.Context, channel: discord.TextChannel=None):
-        """Mark a channel as automatically freezable during a raid (admin only)
+        """Mark a channel as automatically freezable during a raid (mod only)
 
         Parameters
         ----------
@@ -673,7 +673,7 @@ class ModActions(commands.Cog):
     @commands.command(name="freeze")
     @commands.max_concurrency(1, per=commands.BucketType.guild)
     async def freeze(self, ctx):
-        """Freeze all channels (admin only)
+        """Freeze all channels (mod only)
 
         Example usage
         --------------
@@ -705,7 +705,7 @@ class ModActions(commands.Cog):
     @commands.command(name="unfreeze")
     @commands.max_concurrency(1, per=commands.BucketType.guild)
     async def unfreeze(self, ctx):
-        """Unreeze all channels (admin only)
+        """Unreeze all channels (mod only)
 
         Example usage
         --------------
