@@ -21,6 +21,7 @@ numpy = "^1.20.0"
 feedparser = "^6.0.2"
 beautifulsoup4 = "^4.9.3"
 Pillow = "^8.2.0"
+expiringdict = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.6.0"
